@@ -1,0 +1,12 @@
+extends: nitro4060.yaml
+
+training:
+  epochs: 15
+  sampler: weighted
+  loss:
+    name: cross_entropy
+  class_weight_multipliers:
+    bpd: 1.5
+    bmz: 1.2
+  early_stopping_patience: 5
+
