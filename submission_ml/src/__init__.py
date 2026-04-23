@@ -1,2 +1,0 @@
-"""Bioacoustic classification pipeline."""
-
