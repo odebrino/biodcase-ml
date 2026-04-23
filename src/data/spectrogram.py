@@ -8,34 +8,66 @@ from pathlib import Path
 SPECTROGRAM_TRANSFORM_VERSION = 4
 
 
-def require_audio_stack():
+def require_torch():
     try:
         import torch
-        import torchaudio
-    except ImportError as exc:
+    except (ImportError, OSError) as exc:
         raise SystemExit(
-            "Install the audio stack before running this command. "
-            "See the README for the CUDA setup used on the Nitro V15."
+            "Install PyTorch before running this command. "
+            "See the README for the supported setup."
+        ) from exc
+    return torch
+
+
+def optional_torchaudio():
+    try:
+        import torchaudio
+    except Exception as exc:
+        return None, exc
+    return torchaudio, None
+
+
+def require_audio_stack():
+    torch = require_torch()
+    torchaudio, exc = optional_torchaudio()
+    if torchaudio is None:
+        raise SystemExit(
+            "Torchaudio is unavailable or broken in this environment. "
+            "Install a torchaudio build that matches PyTorch/CUDA, or use the scipy fallback paths where supported. "
+            f"Original error: {type(exc).__name__}: {exc}"
         ) from exc
     return torch, torchaudio
 
 
 def read_waveform(path: str | Path):
-    torch, torchaudio = require_audio_stack()
-    try:
-        return torchaudio.load(path)
-    except ImportError:
-        from scipy.io import wavfile
+    torch = require_torch()
+    torchaudio, _ = optional_torchaudio()
+    if torchaudio is not None:
+        try:
+            return torchaudio.load(path)
+        except Exception:
+            pass
+    return _read_waveform_scipy(torch, path)
 
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            sample_rate, data = wavfile.read(path)
-        waveform = torch.as_tensor(data, dtype=torch.float32)
-        if waveform.ndim == 1:
-            waveform = waveform.unsqueeze(0)
-        else:
-            waveform = waveform.transpose(0, 1)
-        return waveform, int(sample_rate)
+
+def _read_waveform_scipy(torch, path: str | Path):
+    try:
+        from scipy.io import wavfile
+    except ImportError as exc:
+        raise SystemExit(
+            "Audio loading requires either torchaudio or scipy.io.wavfile. "
+            "Torchaudio is unavailable and scipy is not installed."
+        ) from exc
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        sample_rate, data = wavfile.read(path)
+    waveform = torch.as_tensor(data, dtype=torch.float32)
+    if waveform.ndim == 1:
+        waveform = waveform.unsqueeze(0)
+    else:
+        waveform = waveform.transpose(0, 1)
+    return waveform, int(sample_rate)
 
 
 def audio_duration(path: str | Path) -> float:
@@ -48,7 +80,7 @@ def audio_duration(path: str | Path) -> float:
 
 
 def crop_event(waveform, sample_rate: int, start_s: float, end_s: float, margin_s: float):
-    torch, _ = require_audio_stack()
+    torch = require_torch()
     start = max(0, int(round((start_s - margin_s) * sample_rate)))
     end = max(start + 1, int(round((end_s + margin_s) * sample_rate)))
     if end <= waveform.shape[-1]:
@@ -92,10 +124,14 @@ def event_cache_key(row: dict, audio_cfg: dict, img_size: int, cache_dtype: str 
 
 
 def event_tensor_from_waveform(waveform, sample_rate: int, row: dict, audio_cfg: dict, img_size: int):
-    torch, torchaudio = require_audio_stack()
+    torch = require_torch()
+    torchaudio, _ = optional_torchaudio()
     target_rate = int(audio_cfg["sample_rate"])
     if sample_rate != target_rate:
-        waveform = torchaudio.functional.resample(waveform, sample_rate, target_rate)
+        if torchaudio is not None:
+            waveform = torchaudio.functional.resample(waveform, sample_rate, target_rate)
+        else:
+            waveform = _resample_waveform_scipy(torch, waveform, sample_rate, target_rate)
         sample_rate = target_rate
 
     if waveform.shape[0] > 1:
@@ -105,16 +141,19 @@ def event_tensor_from_waveform(waveform, sample_rate: int, row: dict, audio_cfg:
     end_s = float(row["clip_end_seconds"] if "clip_end_seconds" in row else row["end_seconds"])
     cropped = crop_event(waveform, sample_rate, start_s, end_s, float(audio_cfg["margin_seconds"]))
 
-    mel = torchaudio.transforms.MelSpectrogram(
-        sample_rate=sample_rate,
-        n_fft=int(audio_cfg["n_fft"]),
-        hop_length=int(audio_cfg["hop_length"]),
-        n_mels=int(audio_cfg["n_mels"]),
-        f_min=float(audio_cfg["f_min"]),
-        f_max=float(audio_cfg["f_max"]),
-        power=2.0,
-    )(cropped)
-    db = torchaudio.transforms.AmplitudeToDB(stype="power")(mel).squeeze(0)
+    if torchaudio is not None:
+        mel = torchaudio.transforms.MelSpectrogram(
+            sample_rate=sample_rate,
+            n_fft=int(audio_cfg["n_fft"]),
+            hop_length=int(audio_cfg["hop_length"]),
+            n_mels=int(audio_cfg["n_mels"]),
+            f_min=float(audio_cfg["f_min"]),
+            f_max=float(audio_cfg["f_max"]),
+            power=2.0,
+        )(cropped)
+        db = torchaudio.transforms.AmplitudeToDB(stype="power")(mel).squeeze(0)
+    else:
+        db = _fallback_mel_db(torch, cropped, sample_rate, audio_cfg)
     if audio_cfg.get("normalization", "sample") == "global":
         db_min = float(audio_cfg.get("db_min", -80.0))
         db_max = float(audio_cfg.get("db_max", 0.0))
@@ -144,13 +183,73 @@ def event_tensor_from_waveform(waveform, sample_rate: int, row: dict, audio_cfg:
     return torch.stack([full, mask, highlighted]).float()
 
 
+def _resample_waveform_scipy(torch, waveform, sample_rate: int, target_rate: int):
+    try:
+        from scipy.signal import resample_poly
+    except ImportError as exc:
+        raise SystemExit(
+            "Resampling requires torchaudio or scipy.signal.resample_poly. "
+            "Torchaudio is unavailable and scipy is not installed."
+        ) from exc
+
+    divisor = math.gcd(sample_rate, target_rate)
+    data = waveform.detach().cpu().numpy()
+    resampled = resample_poly(data, target_rate // divisor, sample_rate // divisor, axis=-1)
+    return torch.as_tensor(resampled, dtype=torch.float32, device=waveform.device)
+
+
+def _fallback_mel_db(torch, waveform, sample_rate: int, audio_cfg: dict):
+    n_fft = int(audio_cfg["n_fft"])
+    hop_length = int(audio_cfg["hop_length"])
+    n_mels = int(audio_cfg["n_mels"])
+    f_min = float(audio_cfg["f_min"])
+    f_max = float(audio_cfg["f_max"])
+    device = waveform.device
+
+    window = torch.hann_window(n_fft, device=device)
+    spectrum = torch.stft(
+        waveform.squeeze(0),
+        n_fft=n_fft,
+        hop_length=hop_length,
+        window=window,
+        return_complex=True,
+    )
+    power = spectrum.abs().pow(2.0)
+    mel_filter = _mel_filter_bank(torch, sample_rate, n_fft, n_mels, f_min, f_max, device)
+    mel = torch.matmul(mel_filter, power).clamp_min(1e-10)
+    return 10.0 * torch.log10(mel)
+
+
+def _mel_filter_bank(torch, sample_rate: int, n_fft: int, n_mels: int, f_min: float, f_max: float, device):
+    def hz_to_mel(value: float) -> float:
+        return 2595.0 * math.log10(1.0 + value / 700.0)
+
+    def mel_to_hz(value):
+        return 700.0 * (10.0 ** (value / 2595.0) - 1.0)
+
+    mel_min = hz_to_mel(f_min)
+    mel_max = hz_to_mel(f_max)
+    mel_points = torch.linspace(mel_min, mel_max, n_mels + 2, device=device)
+    hz_points = mel_to_hz(mel_points)
+    fft_freqs = torch.linspace(0.0, sample_rate / 2.0, n_fft // 2 + 1, device=device)
+    filters = []
+    for idx in range(n_mels):
+        lower = hz_points[idx]
+        center = hz_points[idx + 1]
+        upper = hz_points[idx + 2]
+        left = (fft_freqs - lower) / (center - lower).clamp_min(1e-12)
+        right = (upper - fft_freqs) / (upper - center).clamp_min(1e-12)
+        filters.append(torch.minimum(left, right).clamp_min(0.0))
+    return torch.stack(filters).float()
+
+
 def event_tensor(row: dict, audio_cfg: dict, img_size: int):
     waveform, sample_rate = read_waveform(row["audio_path"])
     return event_tensor_from_waveform(waveform, sample_rate, row, audio_cfg, img_size)
 
 
 def cached_event_tensor(row: dict, audio_cfg: dict, img_size: int, cache_cfg):
-    torch, _ = require_audio_stack()
+    torch = require_torch()
     if not cache_cfg:
         return event_tensor(row, audio_cfg, img_size)
 
@@ -172,7 +271,7 @@ def cached_event_tensor(row: dict, audio_cfg: dict, img_size: int, cache_cfg):
 
 
 def frequency_mask(img_size: int, low_frequency: float, high_frequency: float, f_min: float, f_max: float, device):
-    torch, _ = require_audio_stack()
+    torch = require_torch()
     def hz_to_mel(value: float) -> float:
         return 2595.0 * math.log10(1.0 + value / 700.0)
 
@@ -189,7 +288,7 @@ def frequency_mask(img_size: int, low_frequency: float, high_frequency: float, f
 
 
 def augment_spectrogram(tensor, cfg: dict):
-    torch, _ = require_audio_stack()
+    torch = require_torch()
     out = tensor.clone()
 
     gain = float(cfg.get("gain", 0.0))
