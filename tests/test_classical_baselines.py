@@ -100,11 +100,17 @@ def test_classical_baseline_driver_writes_leakage_safe_artifacts(tmp_path):
 
     run_dir = run_classical_baselines(tiny_config(), manifest_path, tmp_path / "outputs")
 
-    results = pd.read_csv(run_dir / "results.csv")
+    results = pd.read_csv(run_dir / "official_test_results.csv")
     strategy = (run_dir / "split_strategy.json").read_text(encoding="utf-8")
     assert set(results["model"]) == {"gaussian_nb", "random_forest"}
     assert set(results["representation"]) == {"handcrafted"}
     assert "Official held-out test rows are never used" in strategy
     assert (run_dir / "handcrafted" / "gaussian_nb" / "selection_predictions.csv").exists()
-    assert (run_dir / "handcrafted" / "gaussian_nb" / "test_predictions.csv").exists()
-    assert (run_dir / "all_test_predictions.csv").exists()
+    assert (run_dir / "handcrafted" / "gaussian_nb" / "official_test_predictions.csv").exists()
+    assert (run_dir / "handcrafted" / "gaussian_nb" / "official_test_metrics.json").exists()
+    assert (run_dir / "handcrafted" / "gaussian_nb" / "official_test_grouped_family_metrics.json").exists()
+    assert (run_dir / "handcrafted" / "gaussian_nb" / "official_test_ambiguity_report.md").exists()
+    assert (run_dir / "official_test_macro_f1_table.csv").exists()
+    assert (run_dir / "grouped_family_mapping.json").exists()
+    assert (run_dir / "all_official_test_predictions.csv").exists()
+    assert (run_dir / "official_test_best_summary.md").exists()

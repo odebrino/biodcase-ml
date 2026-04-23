@@ -308,12 +308,26 @@ suportados:
 
 Artefatos por run em `outputs/classical/<timestamp>/`:
 
-- `results.csv`
+- `official_test_results.csv`
+- `official_test_macro_f1_table.csv`
+- `official_test_accuracy_table.csv`
+- `official_test_best_summary.md`
 - `split_strategy.json`
-- `all_test_predictions.csv`
+- `grouped_family_mapping.json`
+- `all_official_test_predictions.csv`
 - `<representation>/<model>/selection_metrics.json`
-- `<representation>/<model>/test_metrics.json`
+- `<representation>/<model>/official_test_metrics.json`
+- `<representation>/<model>/official_test_grouped_family_metrics.json`
+- `<representation>/<model>/official_test_metrics_by_dataset.csv`
+- `<representation>/<model>/official_test_grouped_family_metrics_by_dataset.csv`
+- `<representation>/<model>/official_test_ambiguity_report.md`
 - relatorios CSV por classe, matriz de confusao e predicoes
+
+Mapeamento de familias ambiguas:
+
+- `ABZ`: `bma`, `bmb`, `bmz`
+- `DDswp`: `bmd`, `bpd`
+- `20Hz20Plus`: `bp20`, `bp20plus`
 
 O split de selecao interna e derivado apenas de `train`. Quando ha grupos de
 dataset suficientes, o driver usa `GroupShuffleSplit` por `dataset`; caso

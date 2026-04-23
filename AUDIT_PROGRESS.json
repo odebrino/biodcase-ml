@@ -52,13 +52,15 @@
     },
     {
       "point": "No merged-category evaluation exists: ABZ, DDswp, 20Hz20Plus.",
-      "status": "deferred",
-      "phase": "later"
+      "status": "fixed now",
+      "phase": "phase 4",
+      "note": "Classical evaluation now writes both 7-class and regrouped-family metrics with a documented mapping."
     },
     {
       "point": "No explicit family-level or ambiguity-aware reporting framework is implemented.",
-      "status": "deferred",
-      "phase": "later"
+      "status": "fixed now",
+      "phase": "phase 4",
+      "note": "Official-test reports now include grouped-family metrics, per-dataset views, and ambiguity-aware markdown reports."
     },
     {
       "point": "Held-out official split is operationally called validation.",
