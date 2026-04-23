@@ -1,0 +1,21 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ipynb_checkpoints/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+processed_images/
+processed_images_smoke/
+processed_cache/
+outputs/legacy/
+outputs/runs/
+outputs/evaluation*/
+*.pt
+*.pth
+*.ckpt
+
+# Dataset local, kept out of version control because it is large.
+biodcase_development_set/
