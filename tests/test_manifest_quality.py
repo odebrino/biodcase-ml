@@ -4,7 +4,13 @@ import pandas as pd
 from scipy.io import wavfile
 
 from src.data.labels import normalize_label
-from src.data.build_manifest import build_manifest
+from src.data.build_manifest import (
+    MANIFEST_SCHEMA_DESCRIPTION,
+    build_manifest,
+    class_distribution_table,
+    dataset_distribution_table,
+    split_distribution_table,
+)
 
 
 def write_wav(path: Path, seconds: float = 2.0, sample_rate: int = 250) -> None:
@@ -126,3 +132,38 @@ def test_all_required_label_alias_variants_normalize():
     }
 
     assert {alias: normalize_label(alias) for alias in aliases} == aliases
+
+
+def test_manifest_schema_and_distribution_tables_cover_canonical_outputs(tmp_path):
+    root = tmp_path / "data"
+    audio = root / "train" / "audio" / "tiny" / "2020-01-01T00-00-00_000.wav"
+    write_wav(audio)
+    annotation_path = root / "train" / "annotations" / "tiny.csv"
+    annotation_path.parent.mkdir(parents=True, exist_ok=True)
+    pd.DataFrame(
+        [
+            {
+                "dataset": "tiny",
+                "filename": audio.name,
+                "annotation": "Bm-A",
+                "annotator": "test",
+                "low_frequency": 10.0,
+                "high_frequency": 20.0,
+                "start_datetime": "2020-01-01T00:00:00.100000+00:00",
+                "end_datetime": "2020-01-01T00:00:00.600000+00:00",
+            }
+        ]
+    ).to_csv(annotation_path, index=False)
+
+    manifest, issues = build_manifest(root, ["train"], min_valid_seconds=0.1)
+
+    assert issues.empty
+    assert "label_raw" in MANIFEST_SCHEMA_DESCRIPTION
+    assert "quality_status" in MANIFEST_SCHEMA_DESCRIPTION
+    assert class_distribution_table(manifest).to_dict("records") == [
+        {"split": "train", "label": "bma", "count": 1}
+    ]
+    assert split_distribution_table(manifest).to_dict("records") == [{"split": "train", "count": 1}]
+    assert dataset_distribution_table(manifest).to_dict("records") == [
+        {"split": "train", "dataset": "tiny", "count": 1}
+    ]

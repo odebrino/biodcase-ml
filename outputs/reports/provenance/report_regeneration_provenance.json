@@ -1,0 +1,31 @@
+{
+  "generated_at_utc": "2026-04-23T18:53:16.409018+00:00",
+  "data_root": "biodcase_development_set",
+  "manifest_path": "data_manifest.csv",
+  "manifest_sha256": "8bb244a1142a3a519788755260ec96cc18b7dd50d7aeffb8b7e31df003a66810",
+  "manifest_rows": 76123,
+  "quality_issue_rows": 74,
+  "splits": [
+    "train",
+    "validation"
+  ],
+  "reports_root": "outputs/reports",
+  "historical_audit_run_dir": "outputs/runs/20260421-223457",
+  "commands": [
+    "/home/odebrino/Documents/ENSTA/ML/.venv/bin/python scripts/regenerate_all_reports.py --data-root biodcase_development_set --manifest-out data_manifest.csv --reports-root outputs/reports",
+    "/home/odebrino/Documents/ENSTA/ML/.venv/bin/python -m src.analysis.imbalance_audit --config configs/nitro4060.yaml --manifest data_manifest.csv --run-dir outputs/runs/20260421-223457 --distribution-out outputs/reports/manifest/class_distribution_by_split_with_all.csv --out-json outputs/reports/audit/imbalance_audit_summary.json --out-md outputs/reports/audit/imbalance_audit_summary.md --report IMBALANCE_AUDIT.md"
+  ],
+  "artifacts": {
+    "manifest": "data_manifest.csv",
+    "quality_report": "outputs/reports/quality/data_quality_report.csv",
+    "quality_summary": "outputs/reports/quality/data_quality_summary.csv",
+    "class_distribution_by_split": "outputs/reports/manifest/class_distribution_by_split.csv",
+    "split_distribution": "outputs/reports/manifest/split_distribution.csv",
+    "dataset_distribution": "outputs/reports/manifest/dataset_distribution.csv",
+    "class_distribution_overall": "outputs/reports/manifest/class_distribution_overall.csv",
+    "audit_class_distribution_with_all": "outputs/reports/manifest/class_distribution_by_split_with_all.csv",
+    "imbalance_audit_json": "outputs/reports/audit/imbalance_audit_summary.json",
+    "imbalance_audit_markdown": "outputs/reports/audit/imbalance_audit_summary.md",
+    "manifest_schema": "outputs/reports/manifest/manifest_schema.txt"
+  }
+}

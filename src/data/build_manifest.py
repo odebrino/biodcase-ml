@@ -19,6 +19,26 @@ REQUIRED_COLUMNS = {
     "end_datetime",
 }
 
+MANIFEST_SCHEMA_DESCRIPTION = """
+Canonical manifest schema for this repository:
+
+- required annotation inputs:
+  dataset, filename, annotation, annotator, low_frequency, high_frequency,
+  start_datetime, end_datetime
+- normalized label fields:
+  label (canonical machine label), label_display (canonical display form)
+- raw label preservation:
+  label_raw
+- timing and frequency fields:
+  start_seconds, end_seconds, clip_start_seconds, clip_end_seconds,
+  duration_seconds, real_duration_seconds, audio_duration_seconds,
+  low_frequency, high_frequency
+- provenance fields:
+  split, dataset, filename, audio_path, source_annotation, source_row
+- quality/filtering fields:
+  valid_event, quality_status
+""".strip()
+
 
 def _annotation_files(data_root: Path, split: str) -> list[Path]:
     return sorted((data_root / split / "annotations").glob("*.csv"))
@@ -170,6 +190,33 @@ def build_manifest(
     return pd.DataFrame(rows), pd.DataFrame(issues)
 
 
+def class_distribution_table(manifest: pd.DataFrame) -> pd.DataFrame:
+    return (
+        manifest.groupby(["split", "label"], dropna=False)
+        .size()
+        .reset_index(name="count")
+        .sort_values(["split", "label"])
+    )
+
+
+def split_distribution_table(manifest: pd.DataFrame) -> pd.DataFrame:
+    return (
+        manifest.groupby(["split"], dropna=False)
+        .size()
+        .reset_index(name="count")
+        .sort_values(["split"])
+    )
+
+
+def dataset_distribution_table(manifest: pd.DataFrame) -> pd.DataFrame:
+    return (
+        manifest.groupby(["split", "dataset"], dropna=False)
+        .size()
+        .reset_index(name="count")
+        .sort_values(["split", "dataset"])
+    )
+
+
 def write_distribution(manifest: pd.DataFrame, split: str, out_path: Path) -> None:
     subset = manifest[manifest["split"] == split]
     counts = subset["label"].value_counts().sort_index()
@@ -184,12 +231,19 @@ def write_distribution(manifest: pd.DataFrame, split: str, out_path: Path) -> No
     distribution.to_csv(out_path, index=False)
 
 
+def write_split_distributions(manifest: pd.DataFrame, splits: list[str], out_dir: Path) -> None:
+    out_dir.mkdir(parents=True, exist_ok=True)
+    for split in splits:
+        write_distribution(manifest, split, out_dir / f"{split}_class_distribution.csv")
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Build a unified annotation manifest.")
     parser.add_argument("--data-root", default="biodcase_development_set")
     parser.add_argument("--out", default="data_manifest.csv")
-    parser.add_argument("--quality-report", default="outputs/data_quality_report.csv")
-    parser.add_argument("--quality-summary", default="outputs/data_quality_summary.csv")
+    parser.add_argument("--quality-report", default="outputs/reports/quality/data_quality_report.csv")
+    parser.add_argument("--quality-summary", default="outputs/reports/quality/data_quality_summary.csv")
+    parser.add_argument("--split-distribution-dir", default="outputs/reports/manifest")
     parser.add_argument("--min-valid-seconds", type=float, default=0.5)
     parser.add_argument("--splits", nargs="+", default=["train", "validation"])
     return parser.parse_args()
@@ -209,8 +263,7 @@ def main() -> None:
     issues.to_csv(quality_path, index=False)
     write_quality_summary(issues, Path(args.quality_summary))
 
-    for split in args.splits:
-        write_distribution(manifest, split, Path(f"{split}_class_distribution.csv"))
+    write_split_distributions(manifest, args.splits, Path(args.split_distribution_dir))
 
     print(f"Wrote {len(manifest)} manifest rows to {out_path}")
     print(f"Wrote {len(issues)} data quality issues to {quality_path}")

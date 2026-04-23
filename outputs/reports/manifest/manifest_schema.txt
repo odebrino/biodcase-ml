@@ -1,0 +1,17 @@
+Canonical manifest schema for this repository:
+
+- required annotation inputs:
+  dataset, filename, annotation, annotator, low_frequency, high_frequency,
+  start_datetime, end_datetime
+- normalized label fields:
+  label (canonical machine label), label_display (canonical display form)
+- raw label preservation:
+  label_raw
+- timing and frequency fields:
+  start_seconds, end_seconds, clip_start_seconds, clip_end_seconds,
+  duration_seconds, real_duration_seconds, audio_duration_seconds,
+  low_frequency, high_frequency
+- provenance fields:
+  split, dataset, filename, audio_path, source_annotation, source_row
+- quality/filtering fields:
+  valid_event, quality_status

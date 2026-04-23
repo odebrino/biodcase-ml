@@ -1,0 +1,12 @@
+split,dataset,count
+train,ballenyislands2015,2222
+train,casey2014,6866
+train,elephantisland2013,21913
+train,elephantisland2014,20957
+train,greenwich2015,1128
+train,kerguelen2005,2960
+train,maudrise2014,2360
+train,rosssea2014,104
+validation,casey2017,3263
+validation,kerguelen2014,8814
+validation,kerguelen2015,5536

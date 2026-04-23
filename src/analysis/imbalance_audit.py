@@ -174,9 +174,10 @@ def main() -> None:
     parser.add_argument("--config", default="configs/nitro4060.yaml")
     parser.add_argument("--manifest", default="data_manifest.csv")
     parser.add_argument("--run-dir", default=None)
-    parser.add_argument("--out-json", default="outputs/imbalance_audit_summary.json")
-    parser.add_argument("--out-md", default="outputs/imbalance_audit_summary.md")
+    parser.add_argument("--out-json", default="outputs/reports/audit/imbalance_audit_summary.json")
+    parser.add_argument("--out-md", default="outputs/reports/audit/imbalance_audit_summary.md")
     parser.add_argument("--report", default="IMBALANCE_AUDIT.md")
+    parser.add_argument("--distribution-out", default="outputs/reports/manifest/class_distribution_by_split_with_all.csv")
     args = parser.parse_args()
 
     config = load_config(args.config)
@@ -215,8 +216,9 @@ def main() -> None:
     for split, payload in distributions.items():
         for row in payload["classes"]:
             distribution_rows.append({"split": split, **row})
-    Path("outputs").mkdir(exist_ok=True)
-    pd.DataFrame(distribution_rows).to_csv("outputs/class_distribution_by_split.csv", index=False)
+    distribution_out = Path(args.distribution_out)
+    distribution_out.parent.mkdir(parents=True, exist_ok=True)
+    pd.DataFrame(distribution_rows).to_csv(distribution_out, index=False)
 
     predictions = pd.read_csv(run_dir / "val_predictions.csv")
     y_true = predictions["y_true_idx"].tolist()

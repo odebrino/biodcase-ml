@@ -42,7 +42,7 @@ def test_pipeline_build_manifest_writes_cli_artifacts(tmp_path, monkeypatch):
     assert Path("manifest.csv").exists()
     assert Path("outputs/quality.csv").exists()
     assert Path("outputs/summary.csv").exists()
-    assert Path("train_class_distribution.csv").exists()
+    assert Path("outputs/reports/manifest/train_class_distribution.csv").exists()
 
 
 def test_pipeline_cache_summary(tmp_path):
