@@ -8,7 +8,28 @@ representacoes explicitas de crops tempo-frequencia alimentam regressao
 logistica, SVMs, KNN, Naive Bayes, arvores/boosting e MLP. O caminho CNN antigo
 permanece no repositorio apenas como comparacao historica.
 
-## Caminho Principal
+---
+
+## ⚠️ **IMPORTANT: Phase 5 Reconciliation & Honest Status**
+
+This repository has reached Phase 5: Documentation Reconciliation. Please see:
+- **[PHASE_5_RECONCILIATION.md](PHASE_5_RECONCILIATION.md)** for method-compliance matrix and completion status
+- **[EXTERNAL_DATA_REQUIREMENTS.md](EXTERNAL_DATA_REQUIREMENTS.md)** for what data/evidence is needed to verify claims
+
+### Implementation Status Summary
+- ✅ Classical baseline code: **IMPLEMENTED AND TESTED** (but NOT YET EXECUTED in production)
+- ✅ Representation families: **IMPLEMENTED** (patch, handcrafted, hybrid with PCA)  
+- ✅ Label normalization: **IMPLEMENTED** (all 7 classes with alias handling)
+- ✅ Time-frequency crop extraction: **IMPLEMENTED**
+- ✅ APLOSE-inspired presets: **AVAILABLE** (configs/aplose_512_98.yaml, configs/aplose_256_90.yaml)
+- ✅ Imbalance audit: **COMPLETED** (documented in IMBALANCE_AUDIT.md)
+- ✅ CNN best run (historical): **PRESERVED** at outputs/runs/20260421-223457/
+- ❌ Classical baselines results: **NOT YET EXECUTED** → Ready to run with one command below  
+- ⚠️ Official counts verification: **NEEDS EXTERNAL DATA** → See EXTERNAL_DATA_REQUIREMENTS.md
+
+---
+
+## Caminho Principal (Primary Scientific Path)
 
 ```bash
 python -m src.classical.baselines \
@@ -20,6 +41,8 @@ python -m src.classical.baselines \
 Esse driver compara modelos por familia de representacao, ajusta
 normalizacao/PCA somente no subconjunto de treino interno e usa os dominios
 oficiais held-out apenas para avaliacao final.
+
+**NOTE (Phase 5)**: This command is **READY to execute** but **HAS NOT BEEN RUN YET** in this repository snapshot. When executed, it will generate results in `outputs/classical/<timestamp>/`. See PHASE_5_RECONCILIATION.md for status.
 
 ## Resultado CNN Historico
 
@@ -236,6 +259,10 @@ Esses presets expõem `nfft`, `winsize` e `overlap` da diretriz. Nas utilidades
 classicas novas, eles usam eixos lineares de frequencia para facilitar o crop
 literal; o caminho historico de treino conserva o tensor mel com mascara. Eles
 nao substituem a pipeline inteira por uma exportacao visual APLOSE literal.
+
+**NOTE (Phase 5)**: APLOSE-inspired means "guided by the spirit" of APLOSE principles  
+(spectrogram parameter sensitivity, annotation uncertainty, overlapping fragments).  
+This is NOT a full APLOSE implementation. See PHASE_5_RECONCILIATION.md §3 for details.
 
 ## Representacoes Para ML Classico
 
