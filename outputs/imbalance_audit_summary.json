@@ -1,0 +1,265 @@
+{
+  "outcome": "B",
+  "run_dir": "outputs/runs/20260421-223457",
+  "split_strategy": "Dataset-provided train/validation directories; no random split is created by this project.",
+  "stratified_split": false,
+  "split_imbalance_vs_all": {
+    "train": {
+      "imbalance_ratio": 11.335839598997493,
+      "more_imbalanced_than_source": true
+    },
+    "validation": {
+      "imbalance_ratio": 9.244837758112094,
+      "more_imbalanced_than_source": false
+    }
+  },
+  "distributions": {
+    "train": {
+      "total": 58510,
+      "imbalance_ratio": 11.335839598997493,
+      "classes": [
+        {
+          "label": "bma",
+          "count": 18092,
+          "fraction": 0.3092121004956418
+        },
+        {
+          "label": "bmb",
+          "count": 4622,
+          "fraction": 0.07899504358229363
+        },
+        {
+          "label": "bmd",
+          "count": 13141,
+          "fraction": 0.22459408648094342
+        },
+        {
+          "label": "bmz",
+          "count": 1596,
+          "fraction": 0.027277388480601607
+        },
+        {
+          "label": "bp20",
+          "count": 10380,
+          "fraction": 0.1774055716971458
+        },
+        {
+          "label": "bp20plus",
+          "count": 5003,
+          "fraction": 0.085506750982738
+        },
+        {
+          "label": "bpd",
+          "count": 5676,
+          "fraction": 0.09700905828063579
+        }
+      ]
+    },
+    "validation": {
+      "total": 17613,
+      "imbalance_ratio": 9.244837758112094,
+      "classes": [
+        {
+          "label": "bma",
+          "count": 6268,
+          "fraction": 0.3558735025265429
+        },
+        {
+          "label": "bmb",
+          "count": 2277,
+          "fraction": 0.12927950945324476
+        },
+        {
+          "label": "bmd",
+          "count": 2168,
+          "fraction": 0.12309089876795548
+        },
+        {
+          "label": "bmz",
+          "count": 918,
+          "fraction": 0.052120592743995914
+        },
+        {
+          "label": "bp20",
+          "count": 2547,
+          "fraction": 0.14460909555442003
+        },
+        {
+          "label": "bp20plus",
+          "count": 2757,
+          "fraction": 0.15653210696644523
+        },
+        {
+          "label": "bpd",
+          "count": 678,
+          "fraction": 0.03849429398739567
+        }
+      ]
+    },
+    "all": {
+      "total": 76123,
+      "imbalance_ratio": 9.689737470167065,
+      "classes": [
+        {
+          "label": "bma",
+          "count": 24360,
+          "fraction": 0.32000840744584425
+        },
+        {
+          "label": "bmb",
+          "count": 6899,
+          "fraction": 0.09062963887392772
+        },
+        {
+          "label": "bmd",
+          "count": 15309,
+          "fraction": 0.20110873192070727
+        },
+        {
+          "label": "bmz",
+          "count": 2514,
+          "fraction": 0.03302549820684944
+        },
+        {
+          "label": "bp20",
+          "count": 12927,
+          "fraction": 0.1698172694192294
+        },
+        {
+          "label": "bp20plus",
+          "count": 7760,
+          "fraction": 0.10194028086123773
+        },
+        {
+          "label": "bpd",
+          "count": 6354,
+          "fraction": 0.0834701732722042
+        }
+      ]
+    }
+  },
+  "leakage": {
+    "event_overlap_count": 0,
+    "audio_path_overlap_count": 0,
+    "dataset_overlap": []
+  },
+  "model_metrics": {
+    "accuracy": 0.9300516663827855,
+    "balanced_accuracy": 0.9022369738313537,
+    "macro_precision": 0.8817074206428316,
+    "macro_recall": 0.9022369738313537,
+    "macro_f1": 0.8866237358192935,
+    "weighted_precision": 0.9365811144808405,
+    "weighted_recall": 0.9300516663827855,
+    "weighted_f1": 0.9309050943441168
+  },
+  "per_class_metrics": [
+    {
+      "label": "bma",
+      "precision": 0.982772631236795,
+      "recall": 0.9647415443522654,
+      "f1": 0.9736736172610901,
+      "support": 6268.0
+    },
+    {
+      "label": "bmb",
+      "precision": 0.8604771784232366,
+      "recall": 0.7285902503293807,
+      "f1": 0.7890606420927467,
+      "support": 2277.0
+    },
+    {
+      "label": "bmd",
+      "precision": 0.9228339350180506,
+      "recall": 0.9432656826568265,
+      "f1": 0.9329379562043796,
+      "support": 2168.0
+    },
+    {
+      "label": "bmz",
+      "precision": 0.631004366812227,
+      "recall": 0.9444444444444444,
+      "f1": 0.756544502617801,
+      "support": 918.0
+    },
+    {
+      "label": "bp20",
+      "precision": 0.9833526906697638,
+      "recall": 0.9972516686297606,
+      "f1": 0.9902534113060428,
+      "support": 2547.0
+    },
+    {
+      "label": "bp20plus",
+      "precision": 0.9992630803242447,
+      "recall": 0.9836779107725789,
+      "f1": 0.9914092487662219,
+      "support": 2757.0
+    },
+    {
+      "label": "bpd",
+      "precision": 0.7922480620155039,
+      "recall": 0.7536873156342183,
+      "f1": 0.7724867724867724,
+      "support": 678.0
+    }
+  ],
+  "baselines": [
+    {
+      "baseline": "majority_class",
+      "accuracy": 0.3558735025265429,
+      "balanced_accuracy": 0.14285714285714285,
+      "macro_f1": 0.07499087738608697,
+      "weighted_f1": 0.186810863350477
+    },
+    {
+      "baseline": "stratified_random_seed0",
+      "accuracy": 0.20819848975188782,
+      "balanced_accuracy": 0.14246845245054116,
+      "macro_f1": 0.14246845245054116,
+      "weighted_f1": 0.20819848975188782
+    }
+  ],
+  "previous_project_headline_macro_f1": 0.7629,
+  "artifact_audit": {
+    "present": {
+      "best_metrics.json": true,
+      "classification_report.csv": true,
+      "confusion_matrix.png": true,
+      "confusion_matrix_normalized.png": true,
+      "confusion_matrix.csv": true,
+      "confusion_matrix_normalized.csv": true,
+      "baseline_metrics.csv": true,
+      "class_confidence_analysis.csv": true,
+      "pr_curves.csv": true,
+      "top_confusion_pairs.csv": true,
+      "error_analysis.csv": true,
+      "metrics_by_dataset.csv": true,
+      "metrics_by_dataset_class.csv": true,
+      "val_predictions.csv": true
+    },
+    "prediction_rows": 17613,
+    "labels_in_predictions": [
+      "bma",
+      "bmb",
+      "bmd",
+      "bmz",
+      "bp20",
+      "bp20plus",
+      "bpd"
+    ],
+    "classification_report_has_all_classes": true,
+    "classification_report_support_sum": 17613.0,
+    "support_matches_predictions": true,
+    "normalized_confusion_rows_valid": true
+  },
+  "training_imbalance_handling": {
+    "use_class_weights": true,
+    "sampler": "none",
+    "class_weight_multipliers": {
+      "bpd": 2.0,
+      "bmz": 1.35
+    },
+    "validation_rebalanced_or_augmented": false
+  }
+}
