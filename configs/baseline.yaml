@@ -2,7 +2,16 @@ data_root: biodcase_development_set
 manifest_path: data_manifest.csv
 processed_root: processed_images
 train_split: train
+# Legacy operational alias used by older manifests. In the official BIODCASE
+# semantics this split contains held-out site-year test domains, not a generic
+# validation split.
 val_split: validation
+test_split: validation
+selection_split: null
+held_out_test_domains:
+  - casey2017
+  - kerguelen2014
+  - kerguelen2015
 
 dataset:
   mode: spectrogram

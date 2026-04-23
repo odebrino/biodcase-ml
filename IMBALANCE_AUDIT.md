@@ -15,8 +15,8 @@ The previous risk was reporting: accuracy/weighted metrics and raw counts could 
 - Best model beats majority and stratified-random baselines on macro F1 and balanced accuracy.
 
 ## Where The Risk Was
-The split is dataset-provided rather than randomly stratified, and training is intentionally more imbalanced than the combined source. This is a domain-generalization split, not an accidental stratification bug.
-Training already uses class weights and does not rebalance validation/test data. No additional training mitigation is justified by the current best run.
+The split is dataset-provided rather than randomly stratified, and training is intentionally more imbalanced than the combined source. This is a domain-generalization split, not an accidental stratification bug. The repository's legacy `validation` split name denotes the official held-out test domains (`casey2017`, `kerguelen2014`, `kerguelen2015`), not a generic validation set.
+Training already uses class weights and does not rebalance held-out test data. No additional training mitigation is justified by the current best run.
 
 ## What Changed
 - Evaluation now saves balanced accuracy, macro precision/recall, weighted precision/recall, baseline metrics, normalized confusion CSV, confidence analysis, PR curve data, and top confusion pairs.

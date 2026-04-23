@@ -4,6 +4,8 @@ import math
 import warnings
 from pathlib import Path
 
+from src.data.spectrogram_presets import resolve_spectrogram_preset
+
 
 SPECTROGRAM_TRANSFORM_VERSION = 4
 
@@ -89,6 +91,7 @@ def crop_event(waveform, sample_rate: int, start_s: float, end_s: float, margin_
 
 
 def event_cache_key(row: dict, audio_cfg: dict, img_size: int, cache_dtype: str = "float32") -> str:
+    audio_cfg = resolve_spectrogram_preset(audio_cfg)
     audio_path = Path(row["audio_path"]) if row.get("audio_path") else None
     audio_stat = audio_path.stat() if audio_path and audio_path.exists() else None
     payload = {
@@ -108,11 +111,15 @@ def event_cache_key(row: dict, audio_cfg: dict, img_size: int, cache_dtype: str 
         "audio": {
             "sample_rate": audio_cfg["sample_rate"],
             "margin_seconds": audio_cfg["margin_seconds"],
+            "preset": audio_cfg.get("preset"),
             "n_fft": audio_cfg["n_fft"],
+            "win_length": audio_cfg.get("win_length"),
             "hop_length": audio_cfg["hop_length"],
             "n_mels": audio_cfg["n_mels"],
             "f_min": audio_cfg["f_min"],
             "f_max": audio_cfg["f_max"],
+            "overlap_percent": audio_cfg.get("overlap_percent"),
+            "crop_frequency_semantics": audio_cfg.get("crop_frequency_semantics", "time_crop_with_frequency_band_mask"),
             "normalization": audio_cfg.get("normalization", "sample"),
             "db_min": audio_cfg.get("db_min", -80.0),
             "db_max": audio_cfg.get("db_max", 0.0),
@@ -126,6 +133,7 @@ def event_cache_key(row: dict, audio_cfg: dict, img_size: int, cache_dtype: str 
 def event_tensor_from_waveform(waveform, sample_rate: int, row: dict, audio_cfg: dict, img_size: int):
     torch = require_torch()
     torchaudio, _ = optional_torchaudio()
+    audio_cfg = resolve_spectrogram_preset(audio_cfg)
     target_rate = int(audio_cfg["sample_rate"])
     if sample_rate != target_rate:
         if torchaudio is not None:
@@ -145,6 +153,7 @@ def event_tensor_from_waveform(waveform, sample_rate: int, row: dict, audio_cfg:
         mel = torchaudio.transforms.MelSpectrogram(
             sample_rate=sample_rate,
             n_fft=int(audio_cfg["n_fft"]),
+            win_length=int(audio_cfg.get("win_length", audio_cfg["n_fft"])),
             hop_length=int(audio_cfg["hop_length"]),
             n_mels=int(audio_cfg["n_mels"]),
             f_min=float(audio_cfg["f_min"]),
@@ -199,18 +208,21 @@ def _resample_waveform_scipy(torch, waveform, sample_rate: int, target_rate: int
 
 
 def _fallback_mel_db(torch, waveform, sample_rate: int, audio_cfg: dict):
+    audio_cfg = resolve_spectrogram_preset(audio_cfg)
     n_fft = int(audio_cfg["n_fft"])
+    win_length = int(audio_cfg.get("win_length", n_fft))
     hop_length = int(audio_cfg["hop_length"])
     n_mels = int(audio_cfg["n_mels"])
     f_min = float(audio_cfg["f_min"])
     f_max = float(audio_cfg["f_max"])
     device = waveform.device
 
-    window = torch.hann_window(n_fft, device=device)
+    window = torch.hann_window(win_length, device=device)
     spectrum = torch.stft(
         waveform.squeeze(0),
         n_fft=n_fft,
         hop_length=hop_length,
+        win_length=win_length,
         window=window,
         return_complex=True,
     )

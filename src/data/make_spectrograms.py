@@ -5,6 +5,7 @@ import pandas as pd
 from PIL import Image
 from tqdm import tqdm
 
+from src.data.spectrogram_presets import resolve_spectrogram_preset
 from src.data.spectrogram import event_tensor
 
 
@@ -65,9 +66,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--processed-manifest", default="processed_manifest.csv")
     parser.add_argument("--sample-rate", type=int, default=250)
     parser.add_argument("--margin-seconds", type=float, default=1.0)
-    parser.add_argument("--n-fft", type=int, default=128)
-    parser.add_argument("--hop-length", type=int, default=16)
-    parser.add_argument("--n-mels", type=int, default=64)
+    parser.add_argument("--preset", choices=["aplose_512_98", "aplose_256_90"], default=None)
+    parser.add_argument("--n-fft", type=int, default=None)
+    parser.add_argument("--win-length", type=int, default=None)
+    parser.add_argument("--hop-length", type=int, default=None)
+    parser.add_argument("--n-mels", type=int, default=None)
     parser.add_argument("--f-min", type=float, default=0.0)
     parser.add_argument("--f-max", type=float, default=125.0)
     parser.add_argument("--img-size", type=int, default=224)
@@ -82,12 +85,29 @@ def main() -> None:
     audio_cfg = {
         "sample_rate": args.sample_rate,
         "margin_seconds": args.margin_seconds,
-        "n_fft": args.n_fft,
-        "hop_length": args.hop_length,
-        "n_mels": args.n_mels,
+        "preset": args.preset,
+        "win_length": args.win_length,
         "f_min": args.f_min,
         "f_max": args.f_max,
     }
+    if args.preset:
+        audio_cfg.update(
+            {
+                "n_fft": args.n_fft,
+                "hop_length": args.hop_length,
+                "n_mels": args.n_mels,
+            }
+        )
+    else:
+        audio_cfg.update(
+            {
+                "n_fft": args.n_fft or 128,
+                "hop_length": args.hop_length or 16,
+                "n_mels": args.n_mels or 64,
+            }
+        )
+    audio_cfg = {key: value for key, value in audio_cfg.items() if value is not None}
+    audio_cfg = resolve_spectrogram_preset(audio_cfg)
     processed = make_spectrograms(
         manifest_path=Path(args.manifest),
         out_root=Path(args.out),

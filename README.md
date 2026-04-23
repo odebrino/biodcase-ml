@@ -20,15 +20,27 @@ Esse run usa `configs/nitro4060_bpd.yaml`, com FocalLoss e peso maior para `bpd`
 
 ## Classes
 
-| Classe do enunciado | Label usado |
-| --- | --- |
-| BmA | `bma` |
-| BmB | `bmb` |
-| BmD | `bmd` |
-| BmZ | `bmz` |
-| Bp20 | `bp20` |
-| Bp20plus | `bp20plus` |
-| BpD | `bpd` |
+`label` e o identificador canonico interno. `label_raw` preserva o valor
+original da coluna `annotation` para rastreabilidade.
+
+| Classe canonica | Aliases normalizados | Label interno |
+| --- | --- | --- |
+| Bm-A | `bma`, `BmA`, `Bm-A` | `bma` |
+| Bm-B | `bmb`, `BmB`, `Bm-B` | `bmb` |
+| Bm-Z | `bmz`, `BmZ`, `Bm-Z` | `bmz` |
+| Bm-D | `bmd`, `BmD`, `Bm-D` | `bmd` |
+| Bp-20 | `bp20`, `Bp20`, `Bp-20` | `bp20` |
+| Bp-20Plus | `bp20plus`, `Bp20plus`, `Bp-20Plus` | `bp20plus` |
+| Bp-40Down | `bpd`, `BpD`, `Bp-40Down` | `bpd` |
+
+## Semantica Dos Splits
+
+O diretorio ou valor de manifesto chamado `validation` neste repositorio e um
+alias operacional legado para os dominios oficiais de teste: `casey2017`,
+`kerguelen2014` e `kerguelen2015`. Ele nao deve ser descrito como uma
+validacao generica. Qualquer validacao interna para escolha de modelo deve ser
+criada separadamente a partir de `train`; `selection_split: null` deixa claro
+que essa divisao interna ainda nao esta materializada no manifesto atual.
 
 ## Baseline Antigo
 
@@ -76,7 +88,13 @@ python -m src.data.build_manifest \
   --min-valid-seconds 0.5
 ```
 
-O manifesto salva duracao real do WAV, tempos clipados e status de qualidade. Eventos fora do audio, duplicatas e trechos com pouco sinal real sao descartados e registrados no relatorio.
+O manifesto salva duracao real do WAV, tempos clipados, label normalizado,
+`label_raw` e status de qualidade. Eventos fora do audio, duplicatas e trechos
+com pouco sinal real sao descartados e registrados no relatorio.
+
+A coluna `annotation` dos CSVs de origem e a classe do evento. As colunas
+`start_datetime`, `end_datetime`, `low_frequency` e `high_frequency` definem as
+coordenadas anotadas do evento no plano tempo-frequencia.
 
 ## Treino
 
@@ -135,6 +153,8 @@ A avaliacao gera:
 - `confusion_matrix.csv`
 - `confusion_matrix_normalized.csv`
 - `val_predictions.csv`
+- `test_predictions.csv` quando o split avaliado e o teste oficial
+- `split_metadata.json`
 
 ## Inferencia
 
@@ -171,6 +191,26 @@ python -m src.data.make_spectrograms \
 ```
 
 Esses PNGs nao sao necessarios para treinar.
+
+## Espectrogramas E Recortes
+
+O tensor padrao usa tres canais: espectrograma completo, mascara da banda
+anotada e banda realcada. Isso implementa recorte temporal com mascara de
+frequencia, nao um crop literal do retangulo `[start_datetime, end_datetime] x
+[low_frequency, high_frequency]`. Portanto e uma aproximacao intencional da
+semantica do enunciado, nao uma equivalencia exata.
+
+As configuracoes atuais continuam disponiveis. Tambem existem presets inspirados
+nas recomendacoes APLOSE do brief:
+
+```bash
+python -m src.training.train --config configs/aplose_512_98.yaml --manifest data_manifest.csv
+python -m src.training.train --config configs/aplose_256_90.yaml --manifest data_manifest.csv
+```
+
+Esses presets expõem `nfft`, `winsize` e `overlap` da diretriz dentro da
+representacao mel atual. Eles nao substituem a pipeline inteira por uma
+exportacao visual APLOSE literal.
 
 ## Testes
 
@@ -219,4 +259,6 @@ Nos primeiros testes, treinar com pesos simples ajudava as classes maiores, mas 
 - A metrica principal global e Macro-F1; por dataset, use `macro_f1_present_classes`
   quando houver classes ausentes.
 - O input padrao tem 3 canais: espectrograma completo, mascara da banda anotada e banda realcada.
+- `validation` e mantido como nome de split legado nos arquivos existentes, mas
+  representa o teste oficial por dominios site-year.
 - Arquivos grandes como WAVs, cache, PNGs e checkpoints ficam fora do Git.

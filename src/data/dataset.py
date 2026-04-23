@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 from PIL import Image
 
+from src.data.labels import normalize_label
 from src.data.spectrogram import augment_spectrogram, cached_event_tensor
 
 
@@ -32,6 +33,9 @@ class BioacousticDataset:
         self.frame = self.frame[self.frame["split"] == split].reset_index(drop=True)
         if "valid_event" in self.frame.columns:
             self.frame = self.frame[self.frame["valid_event"].map(lambda value: str(value).lower() == "true")].reset_index(drop=True)
+        if "label_raw" not in self.frame.columns:
+            self.frame["label_raw"] = self.frame["label"]
+        self.frame["label"] = self.frame["label"].map(normalize_label)
 
         if self.frame.empty:
             raise ValueError(f"No rows found for split '{split}' in {manifest_path}")
@@ -73,6 +77,8 @@ class BioacousticDataset:
             "dataset": row.get("dataset", ""),
             "filename": row.get("filename", ""),
             "label": row["label"],
+            "label_raw": row.get("label_raw", row["label"]),
+            "label_display": row.get("label_display", ""),
             "source_row": row.get("source_row", ""),
             "low_frequency": row.get("low_frequency", ""),
             "high_frequency": row.get("high_frequency", ""),

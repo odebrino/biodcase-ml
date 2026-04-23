@@ -1,0 +1,143 @@
+{
+  "phase": "Phase 1 - compliance foundation",
+  "updated": "2026-04-23",
+  "statuses": [
+    {
+      "point": "CRITICAL: CNN used as the core model even though the brief explicitly warned against convolutional networks.",
+      "status": "deferred",
+      "phase": "later",
+      "note": "Phase 1 explicitly does not replace the model family."
+    },
+    {
+      "point": "CRITICAL: No classical baseline comparison space.",
+      "status": "deferred",
+      "phase": "later",
+      "note": "Phase 1 explicitly does not add classical baselines."
+    },
+    {
+      "point": "HIGH: No label alias normalization.",
+      "status": "fixed now",
+      "phase": "phase 1",
+      "note": "src.data.labels normalizes all aliases listed by the brief at manifest ingestion and preserves label_raw."
+    },
+    {
+      "point": "HIGH: Spectrogram settings do not follow the guideline settings emphasized in the brief.",
+      "status": "fixed now",
+      "phase": "phase 1",
+      "note": "APLOSE-inspired presets aplose_512_98 and aplose_256_90 are exposed without removing current settings."
+    },
+    {
+      "point": "Annotation-to-crop extraction is PARTIAL: no literal frequency-box crop.",
+      "status": "fixed now",
+      "phase": "phase 1",
+      "note": "Repository now documents the current time-crop plus frequency-band mask as intentionally different from a literal frequency crop."
+    },
+    {
+      "point": "Fixed-size representation families are PARTIAL: no handcrafted-descriptor family, no hybrid family.",
+      "status": "deferred",
+      "phase": "later"
+    },
+    {
+      "point": "No logistic regression, Bayes / Naive Bayes, KNN, SVM, Random Forest, gradient boosting, non-convolutional MLP.",
+      "status": "deferred",
+      "phase": "later"
+    },
+    {
+      "point": "No PCA-based representation path.",
+      "status": "deferred",
+      "phase": "later"
+    },
+    {
+      "point": "No merged-category evaluation exists: ABZ, DDswp, 20Hz20Plus.",
+      "status": "deferred",
+      "phase": "later"
+    },
+    {
+      "point": "No explicit family-level or ambiguity-aware reporting framework is implemented.",
+      "status": "deferred",
+      "phase": "later"
+    },
+    {
+      "point": "Held-out official split is operationally called validation.",
+      "status": "fixed now",
+      "phase": "phase 1",
+      "note": "Config, README, imbalance audit, and evaluation metadata now distinguish the legacy name from the official test role."
+    },
+    {
+      "point": "No systematic ablation over spectrogram parameterizations.",
+      "status": "deferred",
+      "phase": "later"
+    },
+    {
+      "point": "Exact official dataset numbers and totals are not preserved in README.md.",
+      "status": "deferred",
+      "phase": "later"
+    },
+    {
+      "point": "Full dataset table reproduction is missing.",
+      "status": "deferred",
+      "phase": "later"
+    },
+    {
+      "point": "Full biological/acoustic semantic definitions are not preserved in the repository itself.",
+      "status": "deferred",
+      "phase": "later"
+    },
+    {
+      "point": "APLOSE workflow instructions are not represented.",
+      "status": "deferred",
+      "phase": "later"
+    },
+    {
+      "point": "Annotation campaign precision rules are not represented.",
+      "status": "deferred",
+      "phase": "later"
+    },
+    {
+      "point": "Explicit mention of Pyramid Match Kernel as a variable-size image strategy is missing.",
+      "status": "deferred",
+      "phase": "later"
+    },
+    {
+      "point": "Official event counts in the brief do not exactly match the repository manifest.",
+      "status": "needs raw data",
+      "phase": "external evidence",
+      "note": "Requires original annotation CSVs or authoritative raw data to resolve honestly."
+    },
+    {
+      "point": "Raw dataset folder biodcase_development_set/ is absent.",
+      "status": "needs raw data",
+      "phase": "external evidence"
+    },
+    {
+      "point": "Original annotation CSV files and WAV files are absent.",
+      "status": "needs raw data",
+      "phase": "external evidence"
+    },
+    {
+      "point": "Best run outputs/runs/20260421-223457/ referenced in README is absent.",
+      "status": "needs raw data",
+      "phase": "external evidence"
+    },
+    {
+      "point": "Single-fragment annotation discipline is UNVERIFIABLE FROM ZIP.",
+      "status": "needs raw data",
+      "phase": "external evidence"
+    },
+    {
+      "point": "Bonus multi-event temporal localization task is not implemented.",
+      "status": "optional bonus",
+      "phase": "optional"
+    },
+    {
+      "point": "Clustering methods are absent: KMeans, DBSCAN, HDBSCAN, Mean Shift.",
+      "status": "optional bonus",
+      "phase": "optional"
+    },
+    {
+      "point": "Pyramid Match Kernel implementation.",
+      "status": "optional bonus",
+      "phase": "optional"
+    }
+  ]
+}

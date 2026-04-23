@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pandas as pd
 
+from src.data.labels import label_display_name, normalize_label
 from src.data.spectrogram import audio_duration
 from src.utils.audio import annotation_offsets_seconds
 
@@ -51,16 +52,23 @@ def build_manifest(
             for row_number, row in frame.iterrows():
                 dataset = str(row["dataset"])
                 filename = str(row["filename"])
-                label = str(row["annotation"])
+                raw_label = str(row["annotation"]).strip()
                 audio_path = data_root / split / "audio" / dataset / filename
                 issue_prefix = {
                     "split": split,
                     "dataset": dataset,
                     "filename": filename,
-                    "label": label,
+                    "label_raw": raw_label,
                     "source": str(annotation_path),
                     "row": int(row_number),
                 }
+
+                try:
+                    label = normalize_label(raw_label)
+                except ValueError as exc:
+                    issues.append({**issue_prefix, "label": "", "issue": f"unknown_label_alias:{exc}"})
+                    continue
+                issue_prefix["label"] = label
 
                 if not audio_path.exists():
                     issues.append({**issue_prefix, "issue": "missing_audio"})
@@ -138,6 +146,8 @@ def build_manifest(
                         "filename": filename,
                         "audio_path": str(audio_path),
                         "label": label,
+                        "label_raw": raw_label,
+                        "label_display": label_display_name(label),
                         "annotator": str(row["annotator"]),
                         "low_frequency": float(row["low_frequency"]),
                         "high_frequency": float(row["high_frequency"]),

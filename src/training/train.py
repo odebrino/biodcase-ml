@@ -80,7 +80,7 @@ def evaluate_loader(torch, model, loader, class_names, device) -> dict:
     y_true: list[int] = []
     y_pred: list[int] = []
     with torch.no_grad():
-        for images, labels, _ in tqdm(loader, desc="validation", leave=False):
+        for images, labels, _ in tqdm(loader, desc="selection/eval", leave=False):
             logits = model(images.to(device, non_blocking=True))
             y_true.extend(labels.tolist())
             y_pred.extend(logits.argmax(dim=1).cpu().tolist())
@@ -111,7 +111,7 @@ def train(config: dict) -> Path:
     )
     val_loader = create_loader(
         manifest_path=config.get("processed_manifest", "processed_manifest.csv"),
-        split=config.get("val_split", "validation"),
+        split=config.get("selection_split") or config.get("val_split", "validation"),
         class_names=class_names,
         train=False,
         config=config,
@@ -172,6 +172,10 @@ def train(config: dict) -> Path:
             "epoch": epoch,
             "train_loss": train_loss,
             "lr": optimizer.param_groups[0]["lr"],
+            "selection_split": config.get("selection_split") or config.get("val_split", "validation"),
+            "selection_split_role": (
+                "inner_validation" if config.get("selection_split") else "legacy_official_test_used_for_selection"
+            ),
             "val_accuracy": metrics["accuracy"],
             "val_macro_f1": metrics["macro_f1"],
             "val_macro_f1_present_classes": metrics["macro_f1_present_classes"],

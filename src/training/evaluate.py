@@ -137,6 +137,34 @@ def write_baseline_metrics(predictions: pd.DataFrame, class_names: list[str], ou
     pd.DataFrame(rows).to_csv(out_path, index=False)
 
 
+def split_role(config: dict, split_name: str) -> str:
+    if split_name == config.get("test_split"):
+        return "official_held_out_test"
+    if split_name == config.get("selection_split"):
+        return "inner_validation"
+    if split_name == config.get("train_split", "train"):
+        return "official_train"
+    return "custom"
+
+
+def write_split_metadata(config: dict, split_name: str, output_dir: Path) -> None:
+    metadata = {
+        "evaluated_split": split_name,
+        "split_role": split_role(config, split_name),
+        "train_split": config.get("train_split", "train"),
+        "selection_split": config.get("selection_split"),
+        "test_split": config.get("test_split", config.get("val_split", "validation")),
+        "legacy_val_split": config.get("val_split"),
+        "held_out_test_domains": config.get("held_out_test_domains", []),
+        "note": (
+            "The BIODCASE held-out site-year domains are the official test split. "
+            "The repository may still contain the legacy split value 'validation' because that is how earlier manifests were written."
+        ),
+    }
+    with (output_dir / "split_metadata.json").open("w", encoding="utf-8") as handle:
+        json.dump(metadata, handle, indent=2)
+
+
 def write_dataset_metrics(predictions: pd.DataFrame, class_names: list[str], out_path: Path) -> None:
     rows = []
     for dataset, group in predictions.groupby("dataset"):
@@ -245,11 +273,14 @@ def evaluate_checkpoint(
     checkpoint_config = checkpoint.get("args") or config
     if "processed_manifest" in config:
         checkpoint_config["processed_manifest"] = config["processed_manifest"]
+    for key in ("train_split", "selection_split", "test_split", "val_split", "held_out_test_domains"):
+        if key in config and key not in checkpoint_config:
+            checkpoint_config[key] = config[key]
     if num_workers is not None:
         checkpoint_config.setdefault("training", {})["num_workers"] = num_workers
         checkpoint_config["training"]["persistent_workers"] = False
     class_names = checkpoint.get("class_names", checkpoint_config["classes"])
-    split_name = split or checkpoint_config.get("val_split", "validation")
+    split_name = split or checkpoint_config.get("test_split", checkpoint_config.get("val_split", "validation"))
 
     model = create_model(
         name=checkpoint_config["model"]["name"],
@@ -313,7 +344,10 @@ def evaluate_checkpoint(
         json.dump(metrics, handle, indent=2)
     write_classification_report(metrics["classification_report"], output_dir / "classification_report.csv")
     save_predictions(prediction_rows, output_dir / "val_predictions.csv")
+    if split_role(checkpoint_config, split_name) == "official_held_out_test":
+        save_predictions(prediction_rows, output_dir / "test_predictions.csv")
     predictions = pd.DataFrame(prediction_rows)
+    write_split_metadata(checkpoint_config, split_name, output_dir)
     write_dataset_metrics(predictions, class_names, output_dir / "metrics_by_dataset.csv")
     write_dataset_class_metrics(predictions, class_names, output_dir / "metrics_by_dataset_class.csv")
     write_error_analysis(predictions, output_dir / "error_analysis.csv")
