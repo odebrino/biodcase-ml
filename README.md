@@ -29,6 +29,37 @@ This repository has reached Phase 5: Documentation Reconciliation. Please see:
 
 ---
 
+## 🔬 **NEW: Phase 6 Bonus — Temporal Event Localization (EXPERIMENTAL)**
+
+**Separate experimental module for multi-event detection/localization.**
+
+See **[PHASE_6_BONUS_TEMPORAL_LOCALIZATION.md](PHASE_6_BONUS_TEMPORAL_LOCALIZATION.md)** for details.
+
+### Status
+- ✅ Framework implemented (temporal detector + IoU evaluation)
+- ✅ Offline demonstration mode works (uses manifest as labels)
+- ❌ Real execution requires RAW WAV FILES (external data)
+- ⚠️ Experimental/bonus — NOT required for main task
+
+### Quick Reference
+```bash
+# Offline demonstration (no WAV files needed)
+python -c "
+import pandas as pd
+from src.localization.temporal_detector import TemporalDetector
+from src.localization.temporal_evaluation import evaluate_temporal_detection
+
+detector = TemporalDetector(
+    classes=['bma', 'bmb', 'bmd', 'bmz', 'bp20', 'bp20plus', 'bpd'],
+    use_multiclass=True,
+)
+print('Temporal detector ready (offline mode)')
+print('See PHASE_6_BONUS_TEMPORAL_LOCALIZATION.md for full usage')
+"
+```
+
+---
+
 ## Caminho Principal (Primary Scientific Path)
 
 ```bash
