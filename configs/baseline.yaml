@@ -8,6 +8,9 @@ train_split: train
 val_split: validation
 test_split: validation
 selection_split: null
+official_test_split: validation
+inner_selection_split: null
+selection_strategy: explicit_inner_split_required
 held_out_test_domains:
   - casey2017
   - kerguelen2014
@@ -79,3 +82,4 @@ training:
   use_class_weights: true
   early_stopping_patience: 5
   output_dir: outputs/runs
+  allow_official_test_for_selection: false

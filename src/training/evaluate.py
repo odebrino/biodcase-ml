@@ -138,9 +138,11 @@ def write_baseline_metrics(predictions: pd.DataFrame, class_names: list[str], ou
 
 
 def split_role(config: dict, split_name: str) -> str:
-    if split_name == config.get("test_split"):
+    official_test_split = config.get("official_test_split", config.get("test_split"))
+    inner_selection_split = config.get("inner_selection_split", config.get("selection_split"))
+    if split_name == official_test_split:
         return "official_held_out_test"
-    if split_name == config.get("selection_split"):
+    if split_name == inner_selection_split:
         return "inner_validation"
     if split_name == config.get("train_split", "train"):
         return "official_train"
@@ -152,8 +154,10 @@ def write_split_metadata(config: dict, split_name: str, output_dir: Path) -> Non
         "evaluated_split": split_name,
         "split_role": split_role(config, split_name),
         "train_split": config.get("train_split", "train"),
-        "selection_split": config.get("selection_split"),
-        "test_split": config.get("test_split", config.get("val_split", "validation")),
+        "inner_selection_split": config.get("inner_selection_split", config.get("selection_split")),
+        "official_test_split": config.get("official_test_split", config.get("test_split", config.get("val_split", "validation"))),
+        "selection_strategy": config.get("selection_strategy"),
+        "used_official_test_for_selection": config.get("used_official_test_for_selection"),
         "legacy_val_split": config.get("val_split"),
         "held_out_test_domains": config.get("held_out_test_domains", []),
         "note": (
@@ -273,14 +277,27 @@ def evaluate_checkpoint(
     checkpoint_config = checkpoint.get("args") or config
     if "processed_manifest" in config:
         checkpoint_config["processed_manifest"] = config["processed_manifest"]
-    for key in ("train_split", "selection_split", "test_split", "val_split", "held_out_test_domains"):
+    for key in (
+        "train_split",
+        "selection_split",
+        "inner_selection_split",
+        "test_split",
+        "official_test_split",
+        "selection_strategy",
+        "used_official_test_for_selection",
+        "val_split",
+        "held_out_test_domains",
+    ):
         if key in config and key not in checkpoint_config:
             checkpoint_config[key] = config[key]
     if num_workers is not None:
         checkpoint_config.setdefault("training", {})["num_workers"] = num_workers
         checkpoint_config["training"]["persistent_workers"] = False
     class_names = checkpoint.get("class_names", checkpoint_config["classes"])
-    split_name = split or checkpoint_config.get("test_split", checkpoint_config.get("val_split", "validation"))
+    split_name = split or checkpoint_config.get(
+        "official_test_split",
+        checkpoint_config.get("test_split", checkpoint_config.get("val_split", "validation")),
+    )
 
     model = create_model(
         name=checkpoint_config["model"]["name"],

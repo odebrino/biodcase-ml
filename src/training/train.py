@@ -87,6 +87,34 @@ def evaluate_loader(torch, model, loader, class_names, device) -> dict:
     return compute_metrics(y_true, y_pred, class_names)
 
 
+def split_semantics(config: dict) -> dict:
+    train_split = config.get("train_split", "train")
+    official_test_split = config.get("official_test_split", config.get("test_split", config.get("val_split", "validation")))
+    inner_selection_split = config.get("inner_selection_split", config.get("selection_split"))
+    allow_official = bool(config.get("training", {}).get("allow_official_test_for_selection", False))
+    if not inner_selection_split and not allow_official:
+        raise ValueError(
+            "Historical CNN training requires an explicit train-only inner_selection_split. "
+            "Refusing to fall back to the official held-out test split."
+        )
+
+    used_official = False
+    effective_selection_split = inner_selection_split
+    selection_strategy = config.get("selection_strategy", "explicit_inner_split_required")
+    if not effective_selection_split:
+        effective_selection_split = official_test_split
+        used_official = True
+        selection_strategy = "explicit_opt_in_official_test"
+    return {
+        "train_split": train_split,
+        "official_test_split": official_test_split,
+        "inner_selection_split": inner_selection_split,
+        "effective_selection_split": effective_selection_split,
+        "used_official_test_for_selection": used_official,
+        "selection_strategy": selection_strategy,
+    }
+
+
 def train(config: dict) -> Path:
     torch = _require_torch()
     start_time = time.time()
@@ -100,18 +128,19 @@ def train(config: dict) -> Path:
     run_dir = Path(config["training"]["output_dir"]) / datetime.now().strftime("%Y%m%d-%H%M%S")
     run_dir.mkdir(parents=True, exist_ok=True)
     save_config(config, run_dir / "config.yaml")
+    semantics = split_semantics(config)
 
     class_names = config["classes"]
     train_loader = create_loader(
         manifest_path=config.get("processed_manifest", "processed_manifest.csv"),
-        split=config.get("train_split", "train"),
+        split=semantics["train_split"],
         class_names=class_names,
         train=True,
         config=config,
     )
     val_loader = create_loader(
         manifest_path=config.get("processed_manifest", "processed_manifest.csv"),
-        split=config.get("selection_split") or config.get("val_split", "validation"),
+        split=semantics["effective_selection_split"],
         class_names=class_names,
         train=False,
         config=config,
@@ -172,10 +201,13 @@ def train(config: dict) -> Path:
             "epoch": epoch,
             "train_loss": train_loss,
             "lr": optimizer.param_groups[0]["lr"],
-            "selection_split": config.get("selection_split") or config.get("val_split", "validation"),
+            "selection_split": semantics["effective_selection_split"],
             "selection_split_role": (
-                "inner_validation" if config.get("selection_split") else "legacy_official_test_used_for_selection"
+                "official_held_out_test" if semantics["used_official_test_for_selection"] else "inner_validation"
             ),
+            "official_test_split": semantics["official_test_split"],
+            "used_official_test_for_selection": semantics["used_official_test_for_selection"],
+            "selection_strategy": semantics["selection_strategy"],
             "val_accuracy": metrics["accuracy"],
             "val_macro_f1": metrics["macro_f1"],
             "val_macro_f1_present_classes": metrics["macro_f1_present_classes"],
@@ -229,12 +261,19 @@ def train(config: dict) -> Path:
 
 
 def write_run_metadata(torch, run_dir: Path, config: dict, device, start_time: float) -> None:
+    semantics = split_semantics(config)
     metadata = {
         "device": str(device),
         "cuda_available": bool(torch.cuda.is_available()),
         "torch": torch.__version__,
         "seed": int(config["training"]["seed"]),
         "duration_seconds": round(time.time() - start_time, 3),
+        "train_split": semantics["train_split"],
+        "official_test_split": semantics["official_test_split"],
+        "inner_selection_split": semantics["inner_selection_split"],
+        "effective_selection_split": semantics["effective_selection_split"],
+        "selection_strategy": semantics["selection_strategy"],
+        "used_official_test_for_selection": semantics["used_official_test_for_selection"],
     }
     try:
         import torchaudio

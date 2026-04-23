@@ -4,6 +4,7 @@ from scipy.io import wavfile
 
 from src.training.common import create_loader
 from src.training.losses import FocalLoss
+from src.training.train import split_semantics
 
 
 def test_focal_loss_is_finite():
@@ -77,3 +78,35 @@ def test_weighted_sampler_is_enabled(tmp_path):
     assert loader.sampler is not None
     sample_weights = loader.sampler.weights.tolist()
     assert sample_weights[2] / sample_weights[0] > 5.9
+
+
+def test_cnn_training_requires_explicit_inner_selection_split():
+    config = {
+        "train_split": "train",
+        "val_split": "validation",
+        "official_test_split": "validation",
+        "inner_selection_split": None,
+        "training": {"allow_official_test_for_selection": False},
+    }
+
+    try:
+        split_semantics(config)
+    except ValueError as exc:
+        assert "requires an explicit train-only inner_selection_split" in str(exc)
+    else:
+        raise AssertionError("Expected split_semantics to reject silent official-test selection fallback.")
+
+
+def test_cnn_training_can_opt_in_to_historical_official_test_selection():
+    config = {
+        "train_split": "train",
+        "val_split": "validation",
+        "official_test_split": "validation",
+        "inner_selection_split": None,
+        "selection_strategy": "explicit_opt_in_official_test",
+        "training": {"allow_official_test_for_selection": True},
+    }
+
+    semantics = split_semantics(config)
+    assert semantics["effective_selection_split"] == "validation"
+    assert semantics["used_official_test_for_selection"] is True

@@ -8,7 +8,7 @@ from typing import Sequence
 
 from src.data.build_manifest import (
     build_manifest as _build_manifest,
-    write_distribution,
+    write_split_distributions,
     write_quality_summary,
 )
 from src.data.cache_tools import cache_files, cache_size
@@ -22,8 +22,9 @@ from src.utils.config import load_config
 def build_manifest(
     data_root: str | Path = "biodcase_development_set",
     out: str | Path = "data_manifest.csv",
-    quality_report: str | Path = "outputs/data_quality_report.csv",
-    quality_summary: str | Path = "outputs/data_quality_summary.csv",
+    quality_report: str | Path = "outputs/reports/quality/data_quality_report.csv",
+    quality_summary: str | Path = "outputs/reports/quality/data_quality_summary.csv",
+    split_distribution_dir: str | Path = "outputs/reports/manifest",
     min_valid_seconds: float = 0.5,
     splits: Sequence[str] = ("train", "validation"),
 ):
@@ -38,8 +39,7 @@ def build_manifest(
     issues.to_csv(quality_path, index=False)
     write_quality_summary(issues, Path(quality_summary))
 
-    for split in splits:
-        write_distribution(manifest, split, Path(f"{split}_class_distribution.csv"))
+    write_split_distributions(manifest, list(splits), Path(split_distribution_dir))
 
     print(f"Wrote {len(manifest)} manifest rows to {out_path}")
     print(f"Wrote {len(issues)} data quality issues to {quality_path}")
@@ -124,12 +124,19 @@ def cache_summary(root: str | Path = "processed_cache") -> dict:
 
 
 def inspect_errors(
-    report: str | Path = "outputs/runs/20260421-213619/bpd_error_report.csv",
+    report: str | Path | None = None,
     config_path: str | Path = "configs/nitro4060.yaml",
     out: str | Path = "outputs/error_samples",
     limit: int = 40,
+    split: str | None = None,
 ) -> int:
-    count = export_errors(Path(report), load_config(config_path), Path(out), limit)
+    config = load_config(config_path)
+    report_path = Path(report) if report is not None else None
+    if report_path is None:
+        from src.analysis.inspect_errors import discover_default_report
+
+        report_path = discover_default_report(Path("outputs/runs"))
+    count = export_errors(report_path, config, Path(out), limit, split)
     print(f"exported {count} images")
     return count
 
@@ -138,8 +145,8 @@ def imbalance_audit(
     config_path: str | Path = "configs/nitro4060.yaml",
     manifest: str | Path = "data_manifest.csv",
     run_dir: str | Path | None = None,
-    out_json: str | Path = "outputs/imbalance_audit_summary.json",
-    out_md: str | Path = "outputs/imbalance_audit_summary.md",
+    out_json: str | Path = "outputs/reports/audit/imbalance_audit_summary.json",
+    out_md: str | Path = "outputs/reports/audit/imbalance_audit_summary.md",
     report: str | Path = "IMBALANCE_AUDIT.md",
 ) -> subprocess.CompletedProcess[str]:
     command = [
