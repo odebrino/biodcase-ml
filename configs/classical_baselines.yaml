@@ -1,0 +1,27 @@
+extends: aplose_512_98.yaml
+
+classical:
+  representations:
+    - handcrafted
+    - patch
+    - hybrid
+  models:
+    - logistic_regression
+    - linear_svm
+    - rbf_svm
+    - knn
+    - gaussian_nb
+    - random_forest
+    - gradient_boosted_trees
+    - mlp
+  img_size: 32
+  validation_fraction: 0.2
+  limit_per_split: null
+  pca:
+    enabled: true
+    components_by_family:
+      patch: 64
+      hybrid: 64
+      handcrafted: null
+
+seed: 42

@@ -1,12 +1,29 @@
 # BIODCASE Bioacoustic Classification
 
-Pipeline PyTorch para classificar eventos bioacusticos anotados no `biodcase_development_set`.
+Pipeline para classificar eventos bioacusticos anotados no
+`biodcase_development_set`.
 
-O treino principal usa espectrogramas gerados on-the-fly a partir do manifesto limpo. PNGs continuam disponiveis apenas para conferencia visual.
+O caminho cientifico principal agora e classico / nao-convolucional:
+representacoes explicitas de crops tempo-frequencia alimentam regressao
+logistica, SVMs, KNN, Naive Bayes, arvores/boosting e MLP. O caminho CNN antigo
+permanece no repositorio apenas como comparacao historica.
 
-## Resultado Atual
+## Caminho Principal
 
-Melhor run ate agora: `outputs/runs/20260421-223457`.
+```bash
+python -m src.classical.baselines \
+  --config configs/classical_baselines.yaml \
+  --manifest data_manifest.csv \
+  --output-dir outputs/classical
+```
+
+Esse driver compara modelos por familia de representacao, ajusta
+normalizacao/PCA somente no subconjunto de treino interno e usa os dominios
+oficiais held-out apenas para avaliacao final.
+
+## Resultado CNN Historico
+
+Melhor run CNN historico: `outputs/runs/20260421-223457`.
 
 | Metrica | Valor |
 | --- | ---: |
@@ -16,7 +33,9 @@ Melhor run ate agora: `outputs/runs/20260421-223457`.
 | F1 `bpd` | `0.7725` |
 | Macro-F1 `casey2017` | `0.7642` |
 
-Esse run usa `configs/nitro4060_bpd.yaml`, com FocalLoss e peso maior para `bpd` e `bmz`. A maior melhoria veio em `bpd`, que no baseline era confundido com `bmd`.
+Esse run usa `configs/nitro4060_bpd.yaml`, com FocalLoss e peso maior para `bpd`
+e `bmz`. Ele nao e mais o caminho metodologico principal, pois o brief exige
+comparacao classica / nao-convolucional.
 
 ## Classes
 
@@ -96,9 +115,9 @@ A coluna `annotation` dos CSVs de origem e a classe do evento. As colunas
 `start_datetime`, `end_datetime`, `low_frequency` e `high_frequency` definem as
 coordenadas anotadas do evento no plano tempo-frequencia.
 
-## Treino
+## Treino CNN Historico
 
-Config principal para o Nitro:
+Config historica para o Nitro:
 
 ```bash
 python -m src.training.train \
@@ -115,9 +134,10 @@ Defaults importantes:
 - `cache.enabled: true`
 - cache em `processed_cache/`
 
-Cada run fica em `outputs/runs/<timestamp>/` com checkpoints, historico, metricas, matriz de confusao, predicoes e `run_metadata.json`.
+Cada run fica em `outputs/runs/<timestamp>/` com checkpoints, historico,
+metricas, matriz de confusao, predicoes e `run_metadata.json`.
 
-Para reproduzir o melhor run atual:
+Para reproduzir o melhor run CNN historico:
 
 ```bash
 python -m src.training.train \
@@ -271,6 +291,33 @@ python -m src.data.export_crop_verification \
 Esse comando salva pequenos paineis comparando o crop literal com a representacao
 historica de mascara, alem de um CSV com os limites anotados e os limites dos
 bins efetivamente exportados.
+
+## Suite Classica
+
+`configs/classical_baselines.yaml` e o default para o caminho principal. Modelos
+suportados:
+
+- `logistic_regression`
+- `linear_svm`
+- `rbf_svm`
+- `knn`
+- `gaussian_nb`
+- `random_forest`
+- `gradient_boosted_trees`
+- `mlp`
+
+Artefatos por run em `outputs/classical/<timestamp>/`:
+
+- `results.csv`
+- `split_strategy.json`
+- `all_test_predictions.csv`
+- `<representation>/<model>/selection_metrics.json`
+- `<representation>/<model>/test_metrics.json`
+- relatorios CSV por classe, matriz de confusao e predicoes
+
+O split de selecao interna e derivado apenas de `train`. Quando ha grupos de
+dataset suficientes, o driver usa `GroupShuffleSplit` por `dataset`; caso
+contrario, registra explicitamente o fallback em `split_strategy.json`.
 
 ## Testes
 

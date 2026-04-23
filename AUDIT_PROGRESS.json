@@ -1,18 +1,18 @@
 {
-  "phase": "Phase 2 - representation and crop-extraction compliance",
+  "phase": "Phase 3 - classical baseline suite",
   "updated": "2026-04-23",
   "statuses": [
     {
       "point": "CRITICAL: CNN used as the core model even though the brief explicitly warned against convolutional networks.",
-      "status": "deferred",
-      "phase": "later",
-      "note": "Phase 1 explicitly does not replace the model family."
+      "status": "fixed now",
+      "phase": "phase 3",
+      "note": "The default scientific path is now src.classical.baselines; CNN training remains only as historical comparison."
     },
     {
       "point": "CRITICAL: No classical baseline comparison space.",
-      "status": "deferred",
-      "phase": "later",
-      "note": "Phase 1 explicitly does not add classical baselines."
+      "status": "fixed now",
+      "phase": "phase 3",
+      "note": "Implemented Logistic Regression, Linear SVM, RBF SVM, KNN, GaussianNB, Random Forest, Gradient Boosted Trees, and non-convolutional MLP."
     },
     {
       "point": "HIGH: No label alias normalization.",
@@ -40,8 +40,9 @@
     },
     {
       "point": "No logistic regression, Bayes / Naive Bayes, KNN, SVM, Random Forest, gradient boosting, non-convolutional MLP.",
-      "status": "deferred",
-      "phase": "later"
+      "status": "fixed now",
+      "phase": "phase 3",
+      "note": "All required models are available in the classical baseline driver."
     },
     {
       "point": "No PCA-based representation path.",
