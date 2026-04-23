@@ -1,46 +1,63 @@
 # Experiments
 
-Referencia atual: `outputs/runs/20260421-223457`.
+This file is a factual experiment index for the bundled snapshot.
 
-| Experimento | Config | Data | Macro-F1 | F1 bpd | Macro-F1 casey2017 | Observacao |
-| --- | --- | --- | ---: | ---: | ---: | --- |
-| baseline limpo | `configs/nitro4060.yaml` | 2026-04-21 | 0.8593 | 0.5193 | 0.7323 | Bom resultado geral, mas `bpd` cai muito para `bmd`. |
-| focal bpd | `configs/nitro4060_bpd.yaml` | 2026-04-21 | 0.8866 | 0.7725 | 0.7642 | Melhor run ate agora; melhora `bpd` sem perder Macro-F1. |
-| sampler | `configs/nitro4060_sampler.yaml` | nao rodado | - | - | - | Proximo teste se quisermos comparar com FocalLoss. |
-| pretrained | `configs/nitro4060_pretrained.yaml` | nao rodado | - | - | - | Pode ajudar se o ganho em `casey2017` travar. |
-| global norm | `configs/nitro4060_global_norm.yaml` | nao rodado | - | - | - | Teste separado para ver se reduz diferenca entre datasets. |
+## Bundled Historical CNN Runs
 
-## Leitura Rapida
+Bundled run directories exist under `outputs/runs/`.
 
-O FocalLoss resolveu boa parte do problema que mais incomodava: `bpd` saiu de F1 `0.5193` para `0.7725`. O run ainda erra `bpd/bmd`, mas agora o maior bloco de confusao aparece em `bmb -> bmz`. `casey2017` tambem subiu, embora continue pior que os dois datasets de Kerguelen.
+Historically notable bundled CNN run:
 
-## Criterios
+- `outputs/runs/20260421-223457/`
 
-Um experimento so entra como melhoria se:
+Selected metrics from the bundled artifacts in that run:
 
-- `Macro-F1 >= 0.8593`, ou queda maxima de `0.01` com ganho forte em `bpd`;
-- `F1 bpd > 0.60`;
-- `Macro-F1 casey2017 > 0.75`;
-- o cache nao crescer sem controle.
+| run | config | accuracy | macro_f1 | f1_bpd |
+| --- | --- | ---: | ---: | ---: |
+| `20260421-223457` | `configs/nitro4060_bpd.yaml` | 0.9301 | 0.8866 | 0.7725 |
 
-## Comandos
+This is a historical comparison path only.
+
+Provenance status:
+
+- bundled metrics/configs: yes
+- bundled command line: no
+- bundled manifest hash: no
+- bundled result-family summary metadata: partial only
+
+## Classical Baselines
+
+The classical baseline suite is implemented in `src.classical.baselines`.
+
+Current bundled status:
+
+- code: present
+- tests: present
+- executed `outputs/classical/` results: not bundled
+
+This means the classical path is implemented but the repository snapshot does
+not currently ship a timestamped classical result package.
+
+## Experimental Temporal Localization
+
+The bonus temporal-localization path is experimental.
+
+Current bundled status:
+
+- code: present under `src/localization/`
+- executed canonical result directory: not bundled
+
+## Commands
+
+Historical CNN path:
 
 ```bash
 python -m src.training.train --config configs/nitro4060_bpd.yaml --manifest data_manifest.csv
 python -m src.training.evaluate --checkpoint outputs/runs/<run>/best_model.pt --config configs/nitro4060_bpd.yaml --manifest data_manifest.csv --output-dir outputs/runs/<run>
 ```
 
-Para olhar o cache:
+Current primary classical path:
 
 ```bash
-python -m src.data.cache_tools --summary
-```
-
-Para exportar exemplos dos erros `bpd`/`bmd`:
-
-```bash
-python -m src.analysis.inspect_errors \
-  --report outputs/runs/<run>/bpd_error_report.csv \
-  --config configs/nitro4060.yaml \
-  --out outputs/error_samples/<run>
+python -m src.classical.baselines --config configs/classical_baselines.yaml --manifest data_manifest.csv --output-dir outputs/classical
 ```

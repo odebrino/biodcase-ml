@@ -1,5 +1,5 @@
 {
-  "phase": "Phase 3 - classical baseline suite",
+  "phase": "Cleanup complete",
   "updated": "2026-04-23",
   "statuses": [
     {
@@ -75,8 +75,9 @@
     },
     {
       "point": "Exact official dataset numbers and totals are not preserved in README.md.",
-      "status": "deferred",
-      "phase": "later"
+      "status": "needs raw data",
+      "phase": "external evidence",
+      "note": "Bundled manifest counts are known, but reconciliation to any external official totals still requires authoritative outside sources."
     },
     {
       "point": "Full dataset table reproduction is missing.",
@@ -111,18 +112,21 @@
     },
     {
       "point": "Raw dataset folder biodcase_development_set/ is absent.",
-      "status": "needs raw data",
-      "phase": "external evidence"
+      "status": "fixed now",
+      "phase": "cleanup",
+      "note": "The bundled repository snapshot includes biodcase_development_set/."
     },
     {
       "point": "Original annotation CSV files and WAV files are absent.",
-      "status": "needs raw data",
-      "phase": "external evidence"
+      "status": "fixed now",
+      "phase": "cleanup",
+      "note": "The bundled repository snapshot includes annotation CSVs and WAV files, though official external reconciliation may still require outside sources."
     },
     {
       "point": "Best run outputs/runs/20260421-223457/ referenced in README is absent.",
-      "status": "needs raw data",
-      "phase": "external evidence"
+      "status": "fixed now",
+      "phase": "cleanup",
+      "note": "The bundled repository snapshot includes outputs/runs/20260421-223457/."
     },
     {
       "point": "Single-fragment annotation discipline is UNVERIFIABLE FROM ZIP.",
