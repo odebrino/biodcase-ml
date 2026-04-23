@@ -39,7 +39,9 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
     root = Path(args.root)
-    if args.clear or args.clear_except_current:
+    if args.clear_except_current:
+        raise SystemExit("--clear-except-current is not implemented safely yet. Use --clear to remove the full cache.")
+    if args.clear:
         clear_cache(root)
     else:
         print_summary(root)
@@ -47,4 +49,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
