@@ -2,12 +2,22 @@ import hashlib
 import json
 import math
 import warnings
+from dataclasses import dataclass
 from pathlib import Path
 
 from src.data.spectrogram_presets import resolve_spectrogram_preset
 
 
 SPECTROGRAM_TRANSFORM_VERSION = 4
+
+
+@dataclass(frozen=True)
+class SpectrogramFrame:
+    values: object
+    frequencies_hz: object
+    times_seconds: object
+    sample_rate: int
+    config: dict
 
 
 def require_torch():
@@ -90,6 +100,149 @@ def crop_event(waveform, sample_rate: int, start_s: float, end_s: float, margin_
     return torch.nn.functional.pad(waveform[:, start:], (0, max(0, end - waveform.shape[-1])))
 
 
+def prepare_waveform(waveform, sample_rate: int, audio_cfg: dict):
+    torch = require_torch()
+    torchaudio, _ = optional_torchaudio()
+    audio_cfg = resolve_spectrogram_preset(audio_cfg)
+    target_rate = int(audio_cfg["sample_rate"])
+    if sample_rate != target_rate:
+        if torchaudio is not None:
+            waveform = torchaudio.functional.resample(waveform, sample_rate, target_rate)
+        else:
+            waveform = _resample_waveform_scipy(torch, waveform, sample_rate, target_rate)
+        sample_rate = target_rate
+
+    if waveform.shape[0] > 1:
+        waveform = waveform.mean(dim=0, keepdim=True)
+    return waveform.float(), sample_rate
+
+
+def normalize_db(db, audio_cfg: dict):
+    audio_cfg = resolve_spectrogram_preset(audio_cfg)
+    if audio_cfg.get("normalization", "sample") == "global":
+        db_min = float(audio_cfg.get("db_min", -80.0))
+        db_max = float(audio_cfg.get("db_max", 0.0))
+        return (db.clamp(db_min, db_max) - db_min) / max(1e-6, db_max - db_min)
+
+    db = db - db.min()
+    if float(db.max()) > 0:
+        db = db / db.max()
+    return db
+
+
+def spectrogram_frame(waveform, sample_rate: int, audio_cfg: dict, start_offset_s: float = 0.0) -> SpectrogramFrame:
+    torch = require_torch()
+    torchaudio, _ = optional_torchaudio()
+    audio_cfg = resolve_spectrogram_preset(audio_cfg)
+    waveform, sample_rate = prepare_waveform(waveform, sample_rate, audio_cfg)
+    n_fft = int(audio_cfg["n_fft"])
+    win_length = int(audio_cfg.get("win_length", n_fft))
+    hop_length = int(audio_cfg["hop_length"])
+    f_min = float(audio_cfg.get("f_min", 0.0))
+    f_max = float(audio_cfg.get("f_max", sample_rate / 2.0))
+    frequency_scale = str(audio_cfg.get("frequency_scale", "mel")).lower()
+
+    if frequency_scale == "linear":
+        window = torch.hann_window(win_length, device=waveform.device)
+        spectrum = torch.stft(
+            waveform.squeeze(0),
+            n_fft=n_fft,
+            hop_length=hop_length,
+            win_length=win_length,
+            window=window,
+            return_complex=True,
+        )
+        power = spectrum.abs().pow(2.0).clamp_min(1e-10)
+        db = 10.0 * torch.log10(power)
+        freqs = torch.linspace(0.0, sample_rate / 2.0, n_fft // 2 + 1, device=db.device)
+        freq_mask = (freqs >= f_min) & (freqs <= f_max)
+        db = db[freq_mask]
+        freqs = freqs[freq_mask]
+    elif frequency_scale == "mel":
+        if torchaudio is not None:
+            mel = torchaudio.transforms.MelSpectrogram(
+                sample_rate=sample_rate,
+                n_fft=n_fft,
+                win_length=win_length,
+                hop_length=hop_length,
+                n_mels=int(audio_cfg["n_mels"]),
+                f_min=f_min,
+                f_max=f_max,
+                power=2.0,
+            )(waveform)
+            db = torchaudio.transforms.AmplitudeToDB(stype="power")(mel).squeeze(0)
+        else:
+            db = _fallback_mel_db(torch, waveform, sample_rate, audio_cfg)
+        freqs = mel_bin_centers(torch, int(audio_cfg["n_mels"]), f_min, f_max, db.device)
+    else:
+        raise ValueError(f"Unknown frequency_scale: {frequency_scale}")
+
+    times = start_offset_s + torch.arange(db.shape[1], device=db.device, dtype=torch.float32) * (hop_length / sample_rate)
+    return SpectrogramFrame(
+        values=normalize_db(db, audio_cfg),
+        frequencies_hz=freqs.float(),
+        times_seconds=times,
+        sample_rate=sample_rate,
+        config=audio_cfg,
+    )
+
+
+def mel_bin_centers(torch, n_mels: int, f_min: float, f_max: float, device):
+    mel_min = hz_to_mel(f_min)
+    mel_max = hz_to_mel(f_max)
+    mel_points = torch.linspace(mel_min, mel_max, n_mels + 2, device=device)
+    return mel_to_hz((mel_points[:-2] + mel_points[1:-1] + mel_points[2:]) / 3.0)
+
+
+def hz_to_mel(value: float) -> float:
+    return 2595.0 * math.log10(1.0 + value / 700.0)
+
+
+def mel_to_hz(value):
+    return 700.0 * (10.0 ** (value / 2595.0) - 1.0)
+
+
+def literal_time_frequency_crop_from_waveform(waveform, sample_rate: int, row: dict, audio_cfg: dict):
+    torch = require_torch()
+    audio_cfg = resolve_spectrogram_preset(audio_cfg)
+    start_s = float(row["clip_start_seconds"] if "clip_start_seconds" in row else row["start_seconds"])
+    end_s = float(row["clip_end_seconds"] if "clip_end_seconds" in row else row["end_seconds"])
+    low_hz = float(row["low_frequency"])
+    high_hz = float(row["high_frequency"])
+
+    waveform, sample_rate = prepare_waveform(waveform, sample_rate, audio_cfg)
+    segment = crop_event(waveform, sample_rate, start_s, end_s, 0.0)
+    frame = spectrogram_frame(segment, sample_rate, audio_cfg, start_offset_s=start_s)
+    low, high = sorted((low_hz, high_hz))
+    freq_mask = (frame.frequencies_hz >= low) & (frame.frequencies_hz <= high)
+    if not bool(freq_mask.any()):
+        center = torch.argmin((frame.frequencies_hz - ((low + high) / 2.0)).abs())
+        freq_mask[center] = True
+    cropped = frame.values[freq_mask, :]
+    return SpectrogramFrame(
+        values=cropped,
+        frequencies_hz=frame.frequencies_hz[freq_mask],
+        times_seconds=frame.times_seconds,
+        sample_rate=frame.sample_rate,
+        config=frame.config,
+    )
+
+
+def literal_time_frequency_crop(row: dict, audio_cfg: dict):
+    waveform, sample_rate = read_waveform(row["audio_path"])
+    return literal_time_frequency_crop_from_waveform(waveform, sample_rate, row, audio_cfg)
+
+
+def resize_spectrogram(values, img_size: int):
+    torch = require_torch()
+    return torch.nn.functional.interpolate(
+        values.unsqueeze(0).unsqueeze(0),
+        size=(img_size, img_size),
+        mode="bilinear",
+        align_corners=False,
+    ).squeeze(0).squeeze(0)
+
+
 def event_cache_key(row: dict, audio_cfg: dict, img_size: int, cache_dtype: str = "float32") -> str:
     audio_cfg = resolve_spectrogram_preset(audio_cfg)
     audio_path = Path(row["audio_path"]) if row.get("audio_path") else None
@@ -118,6 +271,7 @@ def event_cache_key(row: dict, audio_cfg: dict, img_size: int, cache_dtype: str 
             "n_mels": audio_cfg["n_mels"],
             "f_min": audio_cfg["f_min"],
             "f_max": audio_cfg["f_max"],
+            "frequency_scale": audio_cfg.get("frequency_scale", "mel"),
             "overlap_percent": audio_cfg.get("overlap_percent"),
             "crop_frequency_semantics": audio_cfg.get("crop_frequency_semantics", "time_crop_with_frequency_band_mask"),
             "normalization": audio_cfg.get("normalization", "sample"),
@@ -134,16 +288,7 @@ def event_tensor_from_waveform(waveform, sample_rate: int, row: dict, audio_cfg:
     torch = require_torch()
     torchaudio, _ = optional_torchaudio()
     audio_cfg = resolve_spectrogram_preset(audio_cfg)
-    target_rate = int(audio_cfg["sample_rate"])
-    if sample_rate != target_rate:
-        if torchaudio is not None:
-            waveform = torchaudio.functional.resample(waveform, sample_rate, target_rate)
-        else:
-            waveform = _resample_waveform_scipy(torch, waveform, sample_rate, target_rate)
-        sample_rate = target_rate
-
-    if waveform.shape[0] > 1:
-        waveform = waveform.mean(dim=0, keepdim=True)
+    waveform, sample_rate = prepare_waveform(waveform, sample_rate, audio_cfg)
 
     start_s = float(row["clip_start_seconds"] if "clip_start_seconds" in row else row["start_seconds"])
     end_s = float(row["clip_end_seconds"] if "clip_end_seconds" in row else row["end_seconds"])
@@ -163,14 +308,7 @@ def event_tensor_from_waveform(waveform, sample_rate: int, row: dict, audio_cfg:
         db = torchaudio.transforms.AmplitudeToDB(stype="power")(mel).squeeze(0)
     else:
         db = _fallback_mel_db(torch, cropped, sample_rate, audio_cfg)
-    if audio_cfg.get("normalization", "sample") == "global":
-        db_min = float(audio_cfg.get("db_min", -80.0))
-        db_max = float(audio_cfg.get("db_max", 0.0))
-        db = ((db.clamp(db_min, db_max) - db_min) / max(1e-6, db_max - db_min))
-    else:
-        db = db - db.min()
-        if float(db.max()) > 0:
-            db = db / db.max()
+    db = normalize_db(db, audio_cfg)
     db = db.flip(0)
 
     full = torch.nn.functional.interpolate(

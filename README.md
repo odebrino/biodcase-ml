@@ -194,11 +194,15 @@ Esses PNGs nao sao necessarios para treinar.
 
 ## Espectrogramas E Recortes
 
-O tensor padrao usa tres canais: espectrograma completo, mascara da banda
-anotada e banda realcada. Isso implementa recorte temporal com mascara de
-frequencia, nao um crop literal do retangulo `[start_datetime, end_datetime] x
-[low_frequency, high_frequency]`. Portanto e uma aproximacao intencional da
-semantica do enunciado, nao uma equivalencia exata.
+O pipeline agora separa duas semanticas de representacao:
+
+- `time_crop_with_frequency_band_mask`: tensor historico com tres canais
+  (espectrograma completo, mascara da banda anotada e banda realcada). Isso e
+  uma aproximacao intencional da semantica do enunciado, nao uma equivalencia
+  exata.
+- `literal time-frequency crop`: recorte do retangulo definido por
+  `start_datetime`, `end_datetime`, `low_frequency` e `high_frequency` apos o
+  mapeamento para os eixos tempo/frequencia do espectrograma.
 
 As configuracoes atuais continuam disponiveis. Tambem existem presets inspirados
 nas recomendacoes APLOSE do brief:
@@ -208,9 +212,65 @@ python -m src.training.train --config configs/aplose_512_98.yaml --manifest data
 python -m src.training.train --config configs/aplose_256_90.yaml --manifest data_manifest.csv
 ```
 
-Esses presets expõem `nfft`, `winsize` e `overlap` da diretriz dentro da
-representacao mel atual. Eles nao substituem a pipeline inteira por uma
-exportacao visual APLOSE literal.
+Esses presets expõem `nfft`, `winsize` e `overlap` da diretriz. Nas utilidades
+classicas novas, eles usam eixos lineares de frequencia para facilitar o crop
+literal; o caminho historico de treino conserva o tensor mel com mascara. Eles
+nao substituem a pipeline inteira por uma exportacao visual APLOSE literal.
+
+## Representacoes Para ML Classico
+
+As representacoes abaixo geram artefatos `npz` com `X`, `y`, `feature_names` e
+metadados por linha. Elas usam o recorte literal tempo-frequencia e nao assumem
+CNN.
+
+```bash
+python -m src.data.representations \
+  --manifest data_manifest.csv \
+  --config configs/aplose_512_98.yaml \
+  --family patch \
+  --img-size 64 \
+  --splits train \
+  --out outputs/representations/patch_train.npz
+
+python -m src.data.representations \
+  --manifest data_manifest.csv \
+  --config configs/aplose_512_98.yaml \
+  --family handcrafted \
+  --splits train \
+  --out outputs/representations/handcrafted_train.npz
+
+python -m src.data.representations \
+  --manifest data_manifest.csv \
+  --config configs/aplose_512_98.yaml \
+  --family hybrid \
+  --img-size 64 \
+  --pca-components 32 \
+  --splits train \
+  --out outputs/representations/hybrid_train_pca32.npz
+```
+
+Familias implementadas:
+
+- `patch`: crop literal, resize, flatten.
+- `handcrafted`: duracao, banda anotada, centroid/bandwidth/rolloff espectral,
+  energia por sub-banda e contrastes simples.
+- `hybrid`: patch flatten-ready concatenado com descritores; com
+  `--pca-components`, o PCA reduz a parte de patch antes da concatenacao.
+
+Para conferir se o mapeamento das coordenadas esta plausivel:
+
+```bash
+python -m src.data.export_crop_verification \
+  --manifest data_manifest.csv \
+  --config configs/aplose_512_98.yaml \
+  --out outputs/crop_verification \
+  --splits train \
+  --per-class 2
+```
+
+Esse comando salva pequenos paineis comparando o crop literal com a representacao
+historica de mascara, alem de um CSV com os limites anotados e os limites dos
+bins efetivamente exportados.
 
 ## Testes
 

@@ -33,6 +33,7 @@ audio:
   n_mels: 64
   f_min: 0.0
   f_max: 125.0
+  frequency_scale: mel
   normalization: sample
   db_min: -80.0
   db_max: 0.0

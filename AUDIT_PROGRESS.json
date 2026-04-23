@@ -1,5 +1,5 @@
 {
-  "phase": "Phase 1 - compliance foundation",
+  "phase": "Phase 2 - representation and crop-extraction compliance",
   "updated": "2026-04-23",
   "statuses": [
     {
@@ -23,19 +23,20 @@
     {
       "point": "HIGH: Spectrogram settings do not follow the guideline settings emphasized in the brief.",
       "status": "fixed now",
-      "phase": "phase 1",
-      "note": "APLOSE-inspired presets aplose_512_98 and aplose_256_90 are exposed without removing current settings."
+      "phase": "phase 1/2",
+      "note": "APLOSE-inspired presets aplose_512_98 and aplose_256_90 are exposed and now feed deterministic spectrogram-frame utilities with explicit time/frequency axes."
     },
     {
       "point": "Annotation-to-crop extraction is PARTIAL: no literal frequency-box crop.",
       "status": "fixed now",
-      "phase": "phase 1",
-      "note": "Repository now documents the current time-crop plus frequency-band mask as intentionally different from a literal frequency crop."
+      "phase": "phase 2",
+      "note": "literal_time_frequency_crop maps annotation time/frequency coordinates onto spectrogram axes; the legacy mask/highlight representation remains separate."
     },
     {
       "point": "Fixed-size representation families are PARTIAL: no handcrafted-descriptor family, no hybrid family.",
-      "status": "deferred",
-      "phase": "later"
+      "status": "fixed now",
+      "phase": "phase 2",
+      "note": "src.data.representations exports patch, handcrafted, and hybrid classical-ML-ready feature matrices."
     },
     {
       "point": "No logistic regression, Bayes / Naive Bayes, KNN, SVM, Random Forest, gradient boosting, non-convolutional MLP.",
@@ -44,8 +45,9 @@
     },
     {
       "point": "No PCA-based representation path.",
-      "status": "deferred",
-      "phase": "later"
+      "status": "fixed now",
+      "phase": "phase 2",
+      "note": "Representation export includes an optional PCA hook for patch and hybrid outputs."
     },
     {
       "point": "No merged-category evaluation exists: ABZ, DDswp, 20Hz20Plus.",

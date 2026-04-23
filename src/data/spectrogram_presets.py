@@ -14,6 +14,7 @@ SPECTROGRAM_PRESETS = {
         "f_max": 125.0,
         "overlap_percent": 98,
         "scale": "Default",
+        "frequency_scale": "linear",
         "crop_frequency_semantics": "time_crop_with_frequency_band_mask",
         "preset_note": (
             "Guideline-inspired APLOSE setting nfft=512, winsize=256, overlap=98. "
@@ -30,6 +31,7 @@ SPECTROGRAM_PRESETS = {
         "f_max": 125.0,
         "overlap_percent": 90,
         "scale": "Default",
+        "frequency_scale": "linear",
         "crop_frequency_semantics": "time_crop_with_frequency_band_mask",
         "preset_note": (
             "Guideline-inspired APLOSE setting nfft=256, winsize=256, overlap=90. "
