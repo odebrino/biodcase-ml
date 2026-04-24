@@ -1,0 +1,48 @@
+{
+  "name": "stratified_kfold",
+  "strategy": "StratifiedKFold",
+  "group_column": null,
+  "n_splits": 5,
+  "is_domain_aware": false,
+  "all_scenarios": [
+    {
+      "name": "stratified_kfold",
+      "strategy": "StratifiedKFold",
+      "group_column": null,
+      "n_splits": 5,
+      "is_domain_aware": false
+    },
+    {
+      "name": "leave_one_domain_out",
+      "strategy": "LeaveOneGroupOut",
+      "group_column": "dataset",
+      "n_splits": 3,
+      "is_domain_aware": true
+    }
+  ],
+  "random_scenario": {
+    "name": "stratified_kfold",
+    "strategy": "StratifiedKFold",
+    "group_column": null,
+    "n_splits": 5,
+    "is_domain_aware": false
+  },
+  "domain_ranking_scenario": {
+    "name": "leave_one_domain_out",
+    "strategy": "LeaveOneGroupOut",
+    "group_column": "dataset",
+    "n_splits": 3,
+    "is_domain_aware": true
+  },
+  "final_ranking_scenario": {
+    "name": "stratified_kfold",
+    "strategy": "StratifiedKFold",
+    "group_column": null,
+    "n_splits": 5,
+    "is_domain_aware": false
+  },
+  "ranking_mode": "cv_focused_stratified_first",
+  "task_mode": "7class_strict_cv",
+  "dataset_mode": "balanced_train_cv",
+  "note": "Search uses the official training split only. The official validation split is excluded from CV and hyperparameter selection."
+}

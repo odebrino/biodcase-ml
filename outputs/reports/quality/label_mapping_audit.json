@@ -1,0 +1,748 @@
+{
+  "current_config_labels": [
+    "bma",
+    "bmb",
+    "bmd",
+    "bmz",
+    "bp20",
+    "bp20plus",
+    "bpd"
+  ],
+  "manifest_labels": [
+    "bma",
+    "bmb",
+    "bmd",
+    "bmz",
+    "bp20",
+    "bp20plus",
+    "bpd"
+  ],
+  "notebook_3class_mapping": {
+    "bma": "ABZ",
+    "bmb": "ABZ",
+    "bmz": "ABZ",
+    "bmd": "DDswp",
+    "bpd": "DDswp",
+    "bp20": "20Hz20Plus",
+    "bp20plus": "20Hz20Plus"
+  },
+  "label_aggregation_config": {
+    "enabled": false,
+    "name": "notebook_3class_abz_ddswp_20hz20plus",
+    "mapping": {
+      "bma": "ABZ",
+      "bmb": "ABZ",
+      "bmz": "ABZ",
+      "bmd": "DDswp",
+      "bpd": "DDswp",
+      "bp20": "20Hz20Plus",
+      "bp20plus": "20Hz20Plus"
+    }
+  },
+  "current_uses_notebook_3class_mapping": false,
+  "unknown_labels_for_notebook_mapping": [],
+  "class_counts_by_split": [
+    {
+      "split": "train",
+      "label": "bma",
+      "count": 18092
+    },
+    {
+      "split": "train",
+      "label": "bmb",
+      "count": 4622
+    },
+    {
+      "split": "train",
+      "label": "bmd",
+      "count": 13141
+    },
+    {
+      "split": "train",
+      "label": "bmz",
+      "count": 1596
+    },
+    {
+      "split": "train",
+      "label": "bp20",
+      "count": 10380
+    },
+    {
+      "split": "train",
+      "label": "bp20plus",
+      "count": 5003
+    },
+    {
+      "split": "train",
+      "label": "bpd",
+      "count": 5676
+    },
+    {
+      "split": "validation",
+      "label": "bma",
+      "count": 6268
+    },
+    {
+      "split": "validation",
+      "label": "bmb",
+      "count": 2277
+    },
+    {
+      "split": "validation",
+      "label": "bmd",
+      "count": 2168
+    },
+    {
+      "split": "validation",
+      "label": "bmz",
+      "count": 918
+    },
+    {
+      "split": "validation",
+      "label": "bp20",
+      "count": 2547
+    },
+    {
+      "split": "validation",
+      "label": "bp20plus",
+      "count": 2757
+    },
+    {
+      "split": "validation",
+      "label": "bpd",
+      "count": 678
+    }
+  ],
+  "class_counts_by_domain": [
+    {
+      "split": "train",
+      "dataset": "ballenyislands2015",
+      "label": "bma",
+      "count": 923
+    },
+    {
+      "split": "train",
+      "dataset": "ballenyislands2015",
+      "label": "bmb",
+      "count": 44
+    },
+    {
+      "split": "train",
+      "dataset": "ballenyislands2015",
+      "label": "bmd",
+      "count": 47
+    },
+    {
+      "split": "train",
+      "dataset": "ballenyislands2015",
+      "label": "bmz",
+      "count": 31
+    },
+    {
+      "split": "train",
+      "dataset": "ballenyislands2015",
+      "label": "bp20",
+      "count": 951
+    },
+    {
+      "split": "train",
+      "dataset": "ballenyislands2015",
+      "label": "bp20plus",
+      "count": 148
+    },
+    {
+      "split": "train",
+      "dataset": "ballenyislands2015",
+      "label": "bpd",
+      "count": 78
+    },
+    {
+      "split": "train",
+      "dataset": "casey2014",
+      "label": "bma",
+      "count": 3681
+    },
+    {
+      "split": "train",
+      "dataset": "casey2014",
+      "label": "bmb",
+      "count": 1398
+    },
+    {
+      "split": "train",
+      "dataset": "casey2014",
+      "label": "bmd",
+      "count": 679
+    },
+    {
+      "split": "train",
+      "dataset": "casey2014",
+      "label": "bmz",
+      "count": 1091
+    },
+    {
+      "split": "train",
+      "dataset": "casey2014",
+      "label": "bp20",
+      "count": 17
+    },
+    {
+      "split": "train",
+      "dataset": "elephantisland2013",
+      "label": "bma",
+      "count": 2625
+    },
+    {
+      "split": "train",
+      "dataset": "elephantisland2013",
+      "label": "bmb",
+      "count": 1783
+    },
+    {
+      "split": "train",
+      "dataset": "elephantisland2013",
+      "label": "bmd",
+      "count": 10810
+    },
+    {
+      "split": "train",
+      "dataset": "elephantisland2013",
+      "label": "bmz",
+      "count": 151
+    },
+    {
+      "split": "train",
+      "dataset": "elephantisland2013",
+      "label": "bp20",
+      "count": 3660
+    },
+    {
+      "split": "train",
+      "dataset": "elephantisland2013",
+      "label": "bp20plus",
+      "count": 1859
+    },
+    {
+      "split": "train",
+      "dataset": "elephantisland2013",
+      "label": "bpd",
+      "count": 1025
+    },
+    {
+      "split": "train",
+      "dataset": "elephantisland2014",
+      "label": "bma",
+      "count": 6929
+    },
+    {
+      "split": "train",
+      "dataset": "elephantisland2014",
+      "label": "bmb",
+      "count": 966
+    },
+    {
+      "split": "train",
+      "dataset": "elephantisland2014",
+      "label": "bmd",
+      "count": 1034
+    },
+    {
+      "split": "train",
+      "dataset": "elephantisland2014",
+      "label": "bmz",
+      "count": 100
+    },
+    {
+      "split": "train",
+      "dataset": "elephantisland2014",
+      "label": "bp20",
+      "count": 4939
+    },
+    {
+      "split": "train",
+      "dataset": "elephantisland2014",
+      "label": "bp20plus",
+      "count": 2912
+    },
+    {
+      "split": "train",
+      "dataset": "elephantisland2014",
+      "label": "bpd",
+      "count": 4077
+    },
+    {
+      "split": "train",
+      "dataset": "greenwich2015",
+      "label": "bma",
+      "count": 827
+    },
+    {
+      "split": "train",
+      "dataset": "greenwich2015",
+      "label": "bmb",
+      "count": 157
+    },
+    {
+      "split": "train",
+      "dataset": "greenwich2015",
+      "label": "bmd",
+      "count": 66
+    },
+    {
+      "split": "train",
+      "dataset": "greenwich2015",
+      "label": "bmz",
+      "count": 29
+    },
+    {
+      "split": "train",
+      "dataset": "greenwich2015",
+      "label": "bp20",
+      "count": 2
+    },
+    {
+      "split": "train",
+      "dataset": "greenwich2015",
+      "label": "bp20plus",
+      "count": 1
+    },
+    {
+      "split": "train",
+      "dataset": "greenwich2015",
+      "label": "bpd",
+      "count": 46
+    },
+    {
+      "split": "train",
+      "dataset": "kerguelen2005",
+      "label": "bma",
+      "count": 812
+    },
+    {
+      "split": "train",
+      "dataset": "kerguelen2005",
+      "label": "bmb",
+      "count": 237
+    },
+    {
+      "split": "train",
+      "dataset": "kerguelen2005",
+      "label": "bmd",
+      "count": 435
+    },
+    {
+      "split": "train",
+      "dataset": "kerguelen2005",
+      "label": "bmz",
+      "count": 166
+    },
+    {
+      "split": "train",
+      "dataset": "kerguelen2005",
+      "label": "bp20",
+      "count": 788
+    },
+    {
+      "split": "train",
+      "dataset": "kerguelen2005",
+      "label": "bp20plus",
+      "count": 78
+    },
+    {
+      "split": "train",
+      "dataset": "kerguelen2005",
+      "label": "bpd",
+      "count": 444
+    },
+    {
+      "split": "train",
+      "dataset": "maudrise2014",
+      "label": "bma",
+      "count": 2191
+    },
+    {
+      "split": "train",
+      "dataset": "maudrise2014",
+      "label": "bmb",
+      "count": 37
+    },
+    {
+      "split": "train",
+      "dataset": "maudrise2014",
+      "label": "bmd",
+      "count": 70
+    },
+    {
+      "split": "train",
+      "dataset": "maudrise2014",
+      "label": "bmz",
+      "count": 28
+    },
+    {
+      "split": "train",
+      "dataset": "maudrise2014",
+      "label": "bp20",
+      "count": 23
+    },
+    {
+      "split": "train",
+      "dataset": "maudrise2014",
+      "label": "bp20plus",
+      "count": 5
+    },
+    {
+      "split": "train",
+      "dataset": "maudrise2014",
+      "label": "bpd",
+      "count": 6
+    },
+    {
+      "split": "train",
+      "dataset": "rosssea2014",
+      "label": "bma",
+      "count": 104
+    },
+    {
+      "split": "validation",
+      "dataset": "casey2017",
+      "label": "bma",
+      "count": 1741
+    },
+    {
+      "split": "validation",
+      "dataset": "casey2017",
+      "label": "bmb",
+      "count": 558
+    },
+    {
+      "split": "validation",
+      "dataset": "casey2017",
+      "label": "bmd",
+      "count": 553
+    },
+    {
+      "split": "validation",
+      "dataset": "casey2017",
+      "label": "bmz",
+      "count": 119
+    },
+    {
+      "split": "validation",
+      "dataset": "casey2017",
+      "label": "bp20",
+      "count": 78
+    },
+    {
+      "split": "validation",
+      "dataset": "casey2017",
+      "label": "bp20plus",
+      "count": 214
+    },
+    {
+      "split": "validation",
+      "dataset": "kerguelen2014",
+      "label": "bma",
+      "count": 2557
+    },
+    {
+      "split": "validation",
+      "dataset": "kerguelen2014",
+      "label": "bmb",
+      "count": 1177
+    },
+    {
+      "split": "validation",
+      "dataset": "kerguelen2014",
+      "label": "bmd",
+      "count": 435
+    },
+    {
+      "split": "validation",
+      "dataset": "kerguelen2014",
+      "label": "bmz",
+      "count": 563
+    },
+    {
+      "split": "validation",
+      "dataset": "kerguelen2014",
+      "label": "bp20",
+      "count": 1917
+    },
+    {
+      "split": "validation",
+      "dataset": "kerguelen2014",
+      "label": "bp20plus",
+      "count": 1826
+    },
+    {
+      "split": "validation",
+      "dataset": "kerguelen2014",
+      "label": "bpd",
+      "count": 339
+    },
+    {
+      "split": "validation",
+      "dataset": "kerguelen2015",
+      "label": "bma",
+      "count": 1970
+    },
+    {
+      "split": "validation",
+      "dataset": "kerguelen2015",
+      "label": "bmb",
+      "count": 542
+    },
+    {
+      "split": "validation",
+      "dataset": "kerguelen2015",
+      "label": "bmd",
+      "count": 1180
+    },
+    {
+      "split": "validation",
+      "dataset": "kerguelen2015",
+      "label": "bmz",
+      "count": 236
+    },
+    {
+      "split": "validation",
+      "dataset": "kerguelen2015",
+      "label": "bp20",
+      "count": 552
+    },
+    {
+      "split": "validation",
+      "dataset": "kerguelen2015",
+      "label": "bp20plus",
+      "count": 717
+    },
+    {
+      "split": "validation",
+      "dataset": "kerguelen2015",
+      "label": "bpd",
+      "count": 339
+    }
+  ],
+  "notebook_3class_counts_by_split": [
+    {
+      "split": "train",
+      "notebook_3class_label": "20Hz20Plus",
+      "count": 15383
+    },
+    {
+      "split": "train",
+      "notebook_3class_label": "ABZ",
+      "count": 24310
+    },
+    {
+      "split": "train",
+      "notebook_3class_label": "DDswp",
+      "count": 18817
+    },
+    {
+      "split": "validation",
+      "notebook_3class_label": "20Hz20Plus",
+      "count": 5304
+    },
+    {
+      "split": "validation",
+      "notebook_3class_label": "ABZ",
+      "count": 9463
+    },
+    {
+      "split": "validation",
+      "notebook_3class_label": "DDswp",
+      "count": 2846
+    }
+  ],
+  "notebook_3class_counts_by_domain": [
+    {
+      "split": "train",
+      "dataset": "ballenyislands2015",
+      "notebook_3class_label": "20Hz20Plus",
+      "count": 1099
+    },
+    {
+      "split": "train",
+      "dataset": "ballenyislands2015",
+      "notebook_3class_label": "ABZ",
+      "count": 998
+    },
+    {
+      "split": "train",
+      "dataset": "ballenyislands2015",
+      "notebook_3class_label": "DDswp",
+      "count": 125
+    },
+    {
+      "split": "train",
+      "dataset": "casey2014",
+      "notebook_3class_label": "20Hz20Plus",
+      "count": 17
+    },
+    {
+      "split": "train",
+      "dataset": "casey2014",
+      "notebook_3class_label": "ABZ",
+      "count": 6170
+    },
+    {
+      "split": "train",
+      "dataset": "casey2014",
+      "notebook_3class_label": "DDswp",
+      "count": 679
+    },
+    {
+      "split": "train",
+      "dataset": "elephantisland2013",
+      "notebook_3class_label": "20Hz20Plus",
+      "count": 5519
+    },
+    {
+      "split": "train",
+      "dataset": "elephantisland2013",
+      "notebook_3class_label": "ABZ",
+      "count": 4559
+    },
+    {
+      "split": "train",
+      "dataset": "elephantisland2013",
+      "notebook_3class_label": "DDswp",
+      "count": 11835
+    },
+    {
+      "split": "train",
+      "dataset": "elephantisland2014",
+      "notebook_3class_label": "20Hz20Plus",
+      "count": 7851
+    },
+    {
+      "split": "train",
+      "dataset": "elephantisland2014",
+      "notebook_3class_label": "ABZ",
+      "count": 7995
+    },
+    {
+      "split": "train",
+      "dataset": "elephantisland2014",
+      "notebook_3class_label": "DDswp",
+      "count": 5111
+    },
+    {
+      "split": "train",
+      "dataset": "greenwich2015",
+      "notebook_3class_label": "20Hz20Plus",
+      "count": 3
+    },
+    {
+      "split": "train",
+      "dataset": "greenwich2015",
+      "notebook_3class_label": "ABZ",
+      "count": 1013
+    },
+    {
+      "split": "train",
+      "dataset": "greenwich2015",
+      "notebook_3class_label": "DDswp",
+      "count": 112
+    },
+    {
+      "split": "train",
+      "dataset": "kerguelen2005",
+      "notebook_3class_label": "20Hz20Plus",
+      "count": 866
+    },
+    {
+      "split": "train",
+      "dataset": "kerguelen2005",
+      "notebook_3class_label": "ABZ",
+      "count": 1215
+    },
+    {
+      "split": "train",
+      "dataset": "kerguelen2005",
+      "notebook_3class_label": "DDswp",
+      "count": 879
+    },
+    {
+      "split": "train",
+      "dataset": "maudrise2014",
+      "notebook_3class_label": "20Hz20Plus",
+      "count": 28
+    },
+    {
+      "split": "train",
+      "dataset": "maudrise2014",
+      "notebook_3class_label": "ABZ",
+      "count": 2256
+    },
+    {
+      "split": "train",
+      "dataset": "maudrise2014",
+      "notebook_3class_label": "DDswp",
+      "count": 76
+    },
+    {
+      "split": "train",
+      "dataset": "rosssea2014",
+      "notebook_3class_label": "ABZ",
+      "count": 104
+    },
+    {
+      "split": "validation",
+      "dataset": "casey2017",
+      "notebook_3class_label": "20Hz20Plus",
+      "count": 292
+    },
+    {
+      "split": "validation",
+      "dataset": "casey2017",
+      "notebook_3class_label": "ABZ",
+      "count": 2418
+    },
+    {
+      "split": "validation",
+      "dataset": "casey2017",
+      "notebook_3class_label": "DDswp",
+      "count": 553
+    },
+    {
+      "split": "validation",
+      "dataset": "kerguelen2014",
+      "notebook_3class_label": "20Hz20Plus",
+      "count": 3743
+    },
+    {
+      "split": "validation",
+      "dataset": "kerguelen2014",
+      "notebook_3class_label": "ABZ",
+      "count": 4297
+    },
+    {
+      "split": "validation",
+      "dataset": "kerguelen2014",
+      "notebook_3class_label": "DDswp",
+      "count": 774
+    },
+    {
+      "split": "validation",
+      "dataset": "kerguelen2015",
+      "notebook_3class_label": "20Hz20Plus",
+      "count": 1269
+    },
+    {
+      "split": "validation",
+      "dataset": "kerguelen2015",
+      "notebook_3class_label": "ABZ",
+      "count": 2748
+    },
+    {
+      "split": "validation",
+      "dataset": "kerguelen2015",
+      "notebook_3class_label": "DDswp",
+      "count": 1519
+    }
+  ],
+  "could_mapping_explain_notebook_gap": true,
+  "conclusion": "The maintained strict KNN config uses the original 7 labels, not the notebook 3-class aggregation. That label granularity mismatch can make the notebook's reported KNN accuracy non-comparable, especially because ABZ, DDswp, and 20Hz20Plus collapse known ambiguous subclasses. The larger issue remains evaluation protocol: same-domain/random splits are optimistic while dataset/domain-aware CV collapses."
+}

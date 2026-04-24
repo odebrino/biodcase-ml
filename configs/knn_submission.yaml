@@ -1,0 +1,68 @@
+data_root: biodcase_development_set
+manifest_path: data_manifest.csv
+train_split: train
+val_split: validation
+test_split: validation
+official_test_split: validation
+held_out_test_domains:
+  - casey2017
+  - kerguelen2014
+  - kerguelen2015
+
+classes:
+  - bma
+  - bmb
+  - bmd
+  - bmz
+  - bp20
+  - bp20plus
+  - bpd
+
+label_aggregation:
+  enabled: false
+  name: notebook_3class_abz_ddswp_20hz20plus
+  mapping:
+    bma: ABZ
+    bmb: ABZ
+    bmz: ABZ
+    bmd: DDswp
+    bpd: DDswp
+    bp20: 20Hz20Plus
+    bp20plus: 20Hz20Plus
+
+audio:
+  preset: aplose_512_98
+  margin_seconds: 1.0
+  normalization: sample
+  db_min: -80.0
+  db_max: 0.0
+
+quality:
+  min_valid_seconds: 0.5
+
+submission:
+  feature_set: waveform_spectral_stats
+
+feature_cache:
+  enabled: true
+  root: outputs/cache/features
+
+preprocessing:
+  imputer: mean
+  scaler: robust
+  reducer:
+    type: none
+
+knn:
+  n_neighbors: 1
+  weights: uniform
+  metric: cosine
+  algorithm: brute
+  leaf_size: 20
+  p: 2
+  limit_per_split: null
+
+diagnostics:
+  n_neighbors: 5
+
+seed: 42

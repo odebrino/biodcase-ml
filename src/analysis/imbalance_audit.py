@@ -5,9 +5,9 @@ from pathlib import Path
 
 import pandas as pd
 
-from src.training.evaluate import normalized_confusion_matrix
+from src.evaluation.metrics import normalized_confusion_matrix
 from src.utils.config import load_config
-from src.utils.metrics import compute_metrics
+from src.evaluation.metrics import compute_metrics
 
 
 def class_distribution(frame: pd.DataFrame, class_names: list[str]) -> list[dict]:
@@ -171,7 +171,7 @@ def write_markdown(summary: dict, out_path: Path) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Audit class imbalance risks in splits, metrics, and reports.")
-    parser.add_argument("--config", default="configs/nitro4060.yaml")
+    parser.add_argument("--config", default="legacy/cnn/configs/nitro4060.yaml")
     parser.add_argument("--manifest", default="data_manifest.csv")
     parser.add_argument("--run-dir", default=None)
     parser.add_argument("--out-json", default="outputs/reports/audit/imbalance_audit_summary.json")

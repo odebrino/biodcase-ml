@@ -19,3 +19,17 @@ outputs/evaluation*/
 
 # Dataset local, kept out of version control because it is large.
 biodcase_development_set/
+
+# Generated caches / heavy artifacts
+outputs/cache/
+*.joblib
+*.zip
+*.pt
+*.pth
+*.npy
+*.npz
+
+# Local data / environments
+.venv/
+__pycache__/
+biodcase_development_set/

@@ -19,10 +19,11 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
+from sklearn.tree import DecisionTreeClassifier
 
-from src.data.representations import representation_vector, valid_manifest_rows
+from src.data.representations import build_representation_matrix, valid_manifest_rows
 from src.utils.config import load_config, save_config
-from src.utils.metrics import compute_metrics, write_classification_report
+from src.evaluation.metrics import compute_metrics, write_classification_report
 
 FAMILY_LABELS = ["ABZ", "DDswp", "20Hz20Plus"]
 FAMILY_MAPPING = {
@@ -47,6 +48,7 @@ MODEL_NAMES = [
     "rbf_svm",
     "knn",
     "gaussian_nb",
+    "decision_tree_pruned",
     "random_forest",
     "gradient_boosted_trees",
     "mlp",
@@ -64,6 +66,11 @@ def model_factory(name: str, seed: int):
         return KNeighborsClassifier(n_neighbors=5, weights="distance")
     if name == "gaussian_nb":
         return GaussianNB()
+    if name == "decision_tree_pruned":
+        return DecisionTreeClassifier(
+            random_state=seed,
+            class_weight="balanced",
+        )
     if name == "random_forest":
         return RandomForestClassifier(
             n_estimators=200,
@@ -98,6 +105,70 @@ def needs_scaling(model_name: str) -> bool:
     }
 
 
+def _selection_macro_f1(y_true: np.ndarray, y_pred: np.ndarray, class_names: list[str]) -> float:
+    return evaluate_predictions(y_true, y_pred, class_names)["macro_f1"]
+
+
+def fit_model_with_selection(
+    model_name: str,
+    seed: int,
+    pca_components: int | None,
+    X_fit: np.ndarray,
+    y_fit: np.ndarray,
+    X_selection: np.ndarray,
+    y_selection: np.ndarray,
+    class_names: list[str],
+) -> tuple[Pipeline, dict]:
+    if model_name != "decision_tree_pruned":
+        pipeline = make_pipeline(model_name, seed, pca_components)
+        pipeline.fit(X_fit, y_fit)
+        return pipeline, {}
+
+    imputer = SimpleImputer(strategy="median")
+    X_fit_ready = imputer.fit_transform(X_fit)
+    X_selection_ready = imputer.transform(X_selection)
+    base_tree = DecisionTreeClassifier(random_state=seed, class_weight="balanced")
+    path = base_tree.cost_complexity_pruning_path(X_fit_ready, y_fit)
+    unique_alphas = np.unique(path.ccp_alphas)
+    if len(unique_alphas) > 12:
+        quantiles = np.linspace(0.0, 1.0, 12)
+        unique_alphas = np.unique(np.quantile(unique_alphas, quantiles))
+
+    best = None
+    trials = []
+    for alpha in unique_alphas:
+        candidate = DecisionTreeClassifier(
+            random_state=seed,
+            class_weight="balanced",
+            ccp_alpha=float(alpha),
+        )
+        candidate.fit(X_fit_ready, y_fit)
+        selection_pred = candidate.predict(X_selection_ready)
+        score = _selection_macro_f1(y_selection, selection_pred, class_names)
+        trial = {
+            "ccp_alpha": float(alpha),
+            "selection_macro_f1": float(score),
+            "tree_depth": int(candidate.get_depth()),
+            "leaf_count": int(candidate.get_n_leaves()),
+        }
+        trials.append(trial)
+        ordering_key = (score, -candidate.get_depth(), -candidate.get_n_leaves(), -float(alpha))
+        if best is None or ordering_key > best[0]:
+            best = (ordering_key, candidate, trial)
+
+    pipeline = Pipeline(
+        [
+            ("imputer", imputer),
+            ("model", best[1]),
+        ]
+    )
+    metadata = {
+        "selected_ccp_alpha": best[2]["ccp_alpha"],
+        "selection_search": trials,
+    }
+    return pipeline, metadata
+
+
 def make_pipeline(model_name: str, seed: int, pca_components: int | None = None) -> Pipeline:
     steps: list[tuple[str, Any]] = [("imputer", SimpleImputer(strategy="median"))]
     if needs_scaling(model_name):
@@ -114,26 +185,6 @@ def encode_labels(labels: list[str], class_names: list[str]) -> np.ndarray:
     if unknown:
         raise ValueError(f"Labels not declared in config: {unknown}")
     return np.asarray([class_to_idx[label] for label in labels], dtype=np.int64)
-
-
-def build_feature_matrix(frame: pd.DataFrame, audio_cfg: dict, family: str, img_size: int) -> tuple[np.ndarray, list[dict]]:
-    vectors = []
-    metadata = []
-    for _, row in frame.iterrows():
-        row_dict = row.to_dict()
-        vectors.append(representation_vector(row_dict, audio_cfg, family, img_size))
-        metadata.append(
-            {
-                "split": row_dict.get("split", ""),
-                "dataset": row_dict.get("dataset", ""),
-                "filename": row_dict.get("filename", ""),
-                "source_row": row_dict.get("source_row", ""),
-                "label": row_dict.get("label", ""),
-                "label_raw": row_dict.get("label_raw", ""),
-            }
-        )
-    matrix = np.vstack(vectors).astype(np.float32) if vectors else np.empty((0, 0), dtype=np.float32)
-    return matrix, metadata
 
 
 def inner_selection_split(
@@ -399,8 +450,22 @@ def run_classical_baselines(config: dict, manifest_path: Path, output_dir: Path)
     all_predictions = []
     best_selection = None
     for family in families:
-        X_train_all, train_metadata = build_feature_matrix(train_frame, config["audio"], family, img_size)
-        X_test, test_metadata = build_feature_matrix(test_frame, config["audio"], family, img_size)
+        X_train_all, train_metadata = build_representation_matrix(
+            train_frame,
+            config["audio"],
+            family,
+            img_size,
+            show_progress=True,
+            desc=f"{family} train features",
+        )
+        X_test, test_metadata = build_representation_matrix(
+            test_frame,
+            config["audio"],
+            family,
+            img_size,
+            show_progress=True,
+            desc=f"{family} official test features",
+        )
         X_fit = X_train_all[fit_idx]
         y_fit = y_train_all[fit_idx]
         X_selection = X_train_all[selection_idx]
@@ -411,8 +476,16 @@ def run_classical_baselines(config: dict, manifest_path: Path, output_dir: Path)
             pca_components = min(pca_components, max_components)
 
         for model_name in models:
-            pipeline = make_pipeline(model_name, seed, pca_components)
-            pipeline.fit(X_fit, y_fit)
+            pipeline, model_metadata = fit_model_with_selection(
+                model_name,
+                seed,
+                pca_components,
+                X_fit,
+                y_fit,
+                X_selection,
+                y_selection,
+                class_names,
+            )
 
             selection_pred = pipeline.predict(X_selection)
             test_pred = pipeline.predict(X_test)
@@ -431,6 +504,9 @@ def run_classical_baselines(config: dict, manifest_path: Path, output_dir: Path)
 
             model_dir = run_dir / family / model_name
             model_dir.mkdir(parents=True, exist_ok=True)
+            if model_metadata:
+                with (model_dir / "model_selection_metadata.json").open("w", encoding="utf-8") as handle:
+                    json.dump(model_metadata, handle, indent=2)
             with (model_dir / "selection_metrics.json").open("w", encoding="utf-8") as handle:
                 json.dump(selection_metrics, handle, indent=2)
             with (model_dir / "official_test_metrics.json").open("w", encoding="utf-8") as handle:

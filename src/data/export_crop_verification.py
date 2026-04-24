@@ -8,8 +8,8 @@ import pandas as pd
 from PIL import Image, ImageDraw
 from tqdm import tqdm
 
-from src.data.representations import valid_manifest_rows
-from src.data.spectrogram import event_tensor, literal_time_frequency_crop, resize_spectrogram
+from src.data.representations import iter_rows_with_waveforms, valid_manifest_rows
+from src.data.spectrogram import event_tensor_from_waveform, literal_time_frequency_crop_from_waveform, resize_spectrogram
 from src.utils.config import load_config
 
 
@@ -62,10 +62,10 @@ def export_crop_verification(
 
     out_dir.mkdir(parents=True, exist_ok=True)
     rows = []
-    for idx, row in tqdm(manifest.iterrows(), total=len(manifest), desc="crop verification"):
-        row_dict = row.to_dict()
-        literal = literal_time_frequency_crop(row_dict, config["audio"])
-        mask_tensor = event_tensor(row_dict, config["audio"], img_size)
+    iterator = iter_rows_with_waveforms(manifest, show_progress=True, desc="crop verification")
+    for idx, (row_dict, waveform, sample_rate) in enumerate(iterator):
+        literal = literal_time_frequency_crop_from_waveform(waveform, sample_rate, row_dict, config["audio"])
+        mask_tensor = event_tensor_from_waveform(waveform, sample_rate, row_dict, config["audio"], img_size)
         literal_image = grayscale_image(literal.values, img_size)
         mask_image = rgb_tensor_image(mask_tensor, img_size)
         title = f"{row_dict.get('dataset')} {row_dict.get('filename')} row={row_dict.get('source_row')} label={row_dict.get('label')}"

@@ -74,6 +74,7 @@ def test_required_classical_model_registry_is_available():
         "rbf_svm",
         "knn",
         "gaussian_nb",
+        "decision_tree_pruned",
         "random_forest",
         "gradient_boosted_trees",
         "mlp",

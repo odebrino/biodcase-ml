@@ -9,7 +9,9 @@ import pandas as pd
 from tqdm import tqdm
 
 from src.data.spectrogram import (
+    read_waveform,
     literal_time_frequency_crop,
+    literal_time_frequency_crop_from_waveform,
     resize_spectrogram,
 )
 from src.utils.config import load_config
@@ -44,14 +46,36 @@ def valid_manifest_rows(manifest: pd.DataFrame, splits: list[str] | None = None)
     return frame.reset_index(drop=True)
 
 
+def iter_rows_with_waveforms(frame: pd.DataFrame, show_progress: bool = False, desc: str = "features"):
+    grouped = frame.groupby("audio_path", sort=False, dropna=False)
+    iterator = grouped
+    if show_progress:
+        iterator = tqdm(grouped, total=grouped.ngroups, desc=desc)
+
+    for audio_path, group in iterator:
+        waveform, sample_rate = read_waveform(audio_path)
+        for _, row in group.iterrows():
+            yield row.to_dict(), waveform, sample_rate
+
+
 def literal_patch_vector(row: dict, audio_cfg: dict, img_size: int) -> np.ndarray:
     crop = literal_time_frequency_crop(row, audio_cfg)
     patch = resize_spectrogram(crop.values, img_size)
     return patch.detach().cpu().numpy().astype(np.float32).reshape(-1)
 
 
+def literal_patch_vector_from_waveform(row: dict, waveform, sample_rate: int, audio_cfg: dict, img_size: int) -> np.ndarray:
+    crop = literal_time_frequency_crop_from_waveform(waveform, sample_rate, row, audio_cfg)
+    patch = resize_spectrogram(crop.values, img_size)
+    return patch.detach().cpu().numpy().astype(np.float32).reshape(-1)
+
+
 def handcrafted_descriptor_vector(row: dict, audio_cfg: dict) -> np.ndarray:
     crop = literal_time_frequency_crop(row, audio_cfg)
+    return handcrafted_descriptor_vector_from_crop(row, crop)
+
+
+def handcrafted_descriptor_vector_from_crop(row: dict, crop) -> np.ndarray:
     values = crop.values.detach().cpu().numpy().astype(np.float64)
     freqs = crop.frequencies_hz.detach().cpu().numpy().astype(np.float64)
     times = crop.times_seconds.detach().cpu().numpy().astype(np.float64)
@@ -116,10 +140,22 @@ def handcrafted_descriptor_vector(row: dict, audio_cfg: dict) -> np.ndarray:
     )
 
 
+def handcrafted_descriptor_vector_from_waveform(row: dict, waveform, sample_rate: int, audio_cfg: dict) -> np.ndarray:
+    crop = literal_time_frequency_crop_from_waveform(waveform, sample_rate, row, audio_cfg)
+    return handcrafted_descriptor_vector_from_crop(row, crop)
+
+
 def hybrid_vector(row: dict, audio_cfg: dict, img_size: int) -> np.ndarray:
     return np.concatenate(
         [literal_patch_vector(row, audio_cfg, img_size), handcrafted_descriptor_vector(row, audio_cfg)],
     ).astype(np.float32)
+
+
+def hybrid_vector_from_waveform(row: dict, waveform, sample_rate: int, audio_cfg: dict, img_size: int) -> np.ndarray:
+    crop = literal_time_frequency_crop_from_waveform(waveform, sample_rate, row, audio_cfg)
+    patch = resize_spectrogram(crop.values, img_size).detach().cpu().numpy().astype(np.float32).reshape(-1)
+    descriptors = handcrafted_descriptor_vector_from_crop(row, crop)
+    return np.concatenate([patch, descriptors]).astype(np.float32)
 
 
 def representation_vector(row: dict, audio_cfg: dict, family: str, img_size: int) -> np.ndarray:
@@ -130,6 +166,42 @@ def representation_vector(row: dict, audio_cfg: dict, family: str, img_size: int
     if family == "hybrid":
         return hybrid_vector(row, audio_cfg, img_size)
     raise ValueError(f"Unknown representation family: {family}")
+
+
+def representation_vector_from_waveform(row: dict, waveform, sample_rate: int, audio_cfg: dict, family: str, img_size: int) -> np.ndarray:
+    if family == "patch":
+        return literal_patch_vector_from_waveform(row, waveform, sample_rate, audio_cfg, img_size)
+    if family == "handcrafted":
+        return handcrafted_descriptor_vector_from_waveform(row, waveform, sample_rate, audio_cfg)
+    if family == "hybrid":
+        return hybrid_vector_from_waveform(row, waveform, sample_rate, audio_cfg, img_size)
+    raise ValueError(f"Unknown representation family: {family}")
+
+
+def build_representation_matrix(
+    frame: pd.DataFrame,
+    audio_cfg: dict,
+    family: str,
+    img_size: int,
+    show_progress: bool = False,
+    desc: str = "features",
+) -> tuple[np.ndarray, list[dict]]:
+    vectors = []
+    metadata = []
+    for row_dict, waveform, sample_rate in iter_rows_with_waveforms(frame, show_progress=show_progress, desc=desc):
+        vectors.append(representation_vector_from_waveform(row_dict, waveform, sample_rate, audio_cfg, family, img_size))
+        metadata.append(
+            {
+                "split": row_dict.get("split", ""),
+                "dataset": row_dict.get("dataset", ""),
+                "filename": row_dict.get("filename", ""),
+                "source_row": row_dict.get("source_row", ""),
+                "label": row_dict.get("label", ""),
+                "label_raw": row_dict.get("label_raw", ""),
+            }
+        )
+    matrix = np.vstack(vectors).astype(np.float32) if vectors else np.empty((0, 0), dtype=np.float32)
+    return matrix, metadata
 
 
 def feature_names(family: str, img_size: int) -> list[str]:
@@ -189,9 +261,12 @@ def export_representations(
     vectors = []
     labels = []
     metadata = []
-    for _, row in tqdm(manifest.iterrows(), total=len(manifest), desc=f"{family} representation"):
-        row_dict = row.to_dict()
-        vectors.append(representation_vector(row_dict, config["audio"], family, img_size))
+    for row_dict, waveform, sample_rate in iter_rows_with_waveforms(
+        manifest,
+        show_progress=True,
+        desc=f"{family} representation",
+    ):
+        vectors.append(representation_vector_from_waveform(row_dict, waveform, sample_rate, config["audio"], family, img_size))
         labels.append(str(row_dict["label"]))
         metadata.append(
             {

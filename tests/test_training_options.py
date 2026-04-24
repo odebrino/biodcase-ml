@@ -2,9 +2,9 @@ import pandas as pd
 import torch
 from scipy.io import wavfile
 
-from src.training.common import create_loader
-from src.training.losses import FocalLoss
-from src.training.train import split_semantics
+from legacy.cnn.training.common import create_loader
+from legacy.cnn.training.losses import FocalLoss
+from legacy.cnn.training.train import split_semantics
 
 
 def test_focal_loss_is_finite():

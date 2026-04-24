@@ -1,0 +1,47 @@
+{
+  "required_columns_present": true,
+  "missing_required_columns": [],
+  "train_split": "train",
+  "test_split": "validation",
+  "train_rows": 58510,
+  "test_rows": 17613,
+  "optional_group_columns": [],
+  "checks": {
+    "dataset_filename": {
+      "columns": [
+        "dataset",
+        "filename"
+      ],
+      "duplicate_count": 0,
+      "examples": []
+    },
+    "audio_path": {
+      "columns": [
+        "audio_path"
+      ],
+      "duplicate_count": 0,
+      "examples": []
+    },
+    "event_window": {
+      "columns": [
+        "dataset",
+        "filename",
+        "clip_start_seconds",
+        "clip_end_seconds",
+        "low_frequency",
+        "high_frequency"
+      ],
+      "duplicate_count": 0,
+      "examples": []
+    },
+    "source_row_per_dataset": {
+      "columns": [
+        "dataset",
+        "source_row"
+      ],
+      "duplicate_count": 0,
+      "examples": []
+    }
+  },
+  "leakage_detected": false
+}

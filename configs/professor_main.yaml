@@ -1,0 +1,29 @@
+extends: aplose_512_98.yaml
+
+classical:
+  representations:
+    - handcrafted
+    - hybrid
+  models:
+    - logistic_regression
+    - linear_svm
+    - gaussian_nb
+    - decision_tree_pruned
+    - random_forest
+    - gradient_boosted_trees
+    - mlp
+  img_size: 24
+  validation_fraction: 0.2
+  limit_per_split: null
+  pca:
+    enabled: true
+    components_by_family:
+      handcrafted: null
+      hybrid: 32
+
+clustering:
+  representation: handcrafted
+  img_size: 24
+  per_class_limit: 300
+
+seed: 42

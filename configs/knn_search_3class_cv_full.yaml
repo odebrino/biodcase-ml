@@ -1,0 +1,198 @@
+data_root: biodcase_development_set
+manifest_path: data_manifest.csv
+train_split: train
+val_split: validation
+test_split: validation
+official_test_split: validation
+task_mode: 3class_notebook_cv
+
+classes:
+  - ABZ
+  - DDswp
+  - 20Hz20Plus
+
+label_aggregation:
+  enabled: true
+  name: notebook_3class_abz_ddswp_20hz20plus
+  mapping:
+    bma: ABZ
+    bmb: ABZ
+    bmz: ABZ
+    bmd: DDswp
+    bpd: DDswp
+    bp20: 20Hz20Plus
+    bp20plus: 20Hz20Plus
+
+audio:
+  preset: aplose_512_98
+  margin_seconds: 0.0
+  normalization: sample
+  db_min: -80.0
+  db_max: 0.0
+
+quality:
+  min_valid_seconds: 0.5
+
+submission:
+  feature_set: notebook_exact_44
+
+feature_cache:
+  enabled: true
+  root: outputs/cache/features
+
+preprocessing:
+  imputer: median
+  scaler: standard
+  reducer:
+    type: none
+
+knn:
+  n_neighbors: 5
+  weights: uniform
+  metric: minkowski
+  algorithm: auto
+  leaf_size: 30
+  p: 2
+  limit_per_split: null
+
+seed: 42
+
+search:
+  task_mode: 3class_notebook_cv
+  dataset_mode: balanced_train_cv
+  limit_per_class: 1000
+  domain_cv_top_n: 5
+  cv:
+    strategy: auto
+    primary: stratified_kfold
+    group_column: dataset
+    n_splits: 5
+    max_leave_one_group_splits: 12
+  notebook_ablation:
+    imputer: median
+    scaler: standard
+    reducer:
+      type: none
+    n_neighbors: 5
+    weights: uniform
+    metric: minkowski
+    algorithm: auto
+    leaf_size: 30
+    p: 2
+    feature_sets:
+      - notebook_exact_26
+      - notebook_exact_44
+      - notebook_exact_44_noclip
+      - notebook_exact_44_dynrange
+      - notebook_exact_44_plus_duration
+      - notebook_lowfreq_band_features
+      - relative_lowfreq_shape_features
+      - temporal_lowfreq_shape_features
+      - lowfreq_relative_temporal
+      - lowfreq_all
+      - class_region_lowfreq_features
+      - notebook_exact_44_plus_regions
+      - lowfreq_all_plus_waveform_spectral
+  stages:
+    - name: cv_notebook_exact_and_lowfreq
+      feature_sets:
+        - notebook_exact_26
+        - notebook_exact_44
+        - notebook_exact_44_noclip
+        - notebook_exact_44_dynrange
+        - notebook_exact_44_plus_duration
+        - notebook_lowfreq_band_features
+        - notebook_lowfreq_mean_20
+        - notebook_lowfreq_max_20
+        - notebook_lowfreq_meanmax_64
+        - relative_lowfreq_shape_features
+        - temporal_lowfreq_shape_features
+        - lowfreq_relative_temporal
+        - lowfreq_all
+        - lowfreq_all_plus_mfcc
+        - lowfreq_all_plus_logmel
+        - lowfreq_all_plus_waveform_spectral
+        - class_region_lowfreq_features
+        - notebook_exact_44_plus_regions
+        - lowfreq_all_plus_regions
+        - waveform_spectral_stats
+      imputers:
+        - median
+        - mean
+      scalers:
+        - standard
+        - robust
+        - minmax
+        - normalizer
+        - standard_l2
+        - robust_l2
+        - power
+      reducers:
+        - type: none
+        - type: variance_threshold
+          threshold: 0.0
+        - type: select_k_best
+          k: 16
+        - type: select_k_best
+          k: 32
+        - type: select_k_best
+          k: 44
+        - type: select_k_best
+          k: 64
+        - type: select_k_best
+          k: 128
+        - type: select_k_best
+          k: 256
+        - type: select_k_best
+          k: 512
+        - type: select_k_best
+          k: 1024
+        - type: pca_components
+          value: 8
+        - type: pca_components
+          value: 16
+        - type: pca_components
+          value: 32
+        - type: pca_components
+          value: 44
+        - type: pca_components
+          value: 64
+        - type: pca_components
+          value: 128
+        - type: pca_components
+          value: 256
+      n_neighbors:
+        - 1
+        - 3
+        - 5
+        - 7
+        - 9
+        - 11
+        - 15
+        - 21
+        - 31
+        - 41
+      weights:
+        - uniform
+        - distance
+      metrics:
+        - euclidean
+        - manhattan
+        - cosine
+        - minkowski
+        - chebyshev
+      algorithms:
+        - brute
+        - auto
+      leaf_sizes:
+        - 10
+        - 20
+        - 30
+        - 50
+        - 80
+      p_values:
+        - 1
+        - 2
+        - 3
+      max_candidates: 220
+      ensure_feature_coverage: true

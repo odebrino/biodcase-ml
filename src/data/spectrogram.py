@@ -141,6 +141,9 @@ def spectrogram_frame(waveform, sample_rate: int, audio_cfg: dict, start_offset_
     f_min = float(audio_cfg.get("f_min", 0.0))
     f_max = float(audio_cfg.get("f_max", sample_rate / 2.0))
     frequency_scale = str(audio_cfg.get("frequency_scale", "mel")).lower()
+    min_samples = max(n_fft, win_length)
+    if waveform.shape[-1] < min_samples:
+        waveform = torch.nn.functional.pad(waveform, (0, min_samples - waveform.shape[-1]))
 
     if frequency_scale == "linear":
         window = torch.hann_window(win_length, device=waveform.device)

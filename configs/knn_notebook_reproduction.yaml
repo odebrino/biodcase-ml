@@ -1,0 +1,66 @@
+data_root: biodcase_development_set
+manifest_path: data_manifest.csv
+train_split: train
+val_split: validation
+test_split: validation
+official_test_split: validation
+
+classes:
+  - ABZ
+  - DDswp
+  - 20Hz20Plus
+
+label_aggregation:
+  enabled: true
+  name: notebook_3class_abz_ddswp_20hz20plus
+  mapping:
+    bma: ABZ
+    bmb: ABZ
+    bmz: ABZ
+    bmd: DDswp
+    bpd: DDswp
+    bp20: 20Hz20Plus
+    bp20plus: 20Hz20Plus
+
+audio:
+  preset: aplose_512_98
+  margin_seconds: 0.0
+  normalization: sample
+  db_min: -80.0
+  db_max: 0.0
+
+feature_cache:
+  enabled: true
+  root: outputs/cache/features
+
+quality:
+  min_valid_seconds: 0.5
+
+seed: 42
+
+notebook_reproduction:
+  feature_set: notebook_exact_44
+  default_dataset: elephantisland2014
+  test_size: 0.2
+  n_splits: 5
+  classes_3:
+    - ABZ
+    - DDswp
+    - 20Hz20Plus
+  classes_7:
+    - bma
+    - bmb
+    - bmd
+    - bmz
+    - bp20
+    - bp20plus
+    - bpd
+  datasets:
+    - casey2014
+    - kerguelen2005
+    - maudrise2014
+    - elephantisland2013
+    - rosssea2014
+    - elephantisland2014
+    - ballenyislands2015
+    - greenwich2015

@@ -58,7 +58,7 @@ def export_errors(report_path: Path, config: dict, out_dir: Path, limit: int, sp
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Export PNGs for the main bpd/bmd errors.")
     parser.add_argument("--report", default=None)
-    parser.add_argument("--config", default="configs/nitro4060.yaml")
+    parser.add_argument("--config", default="legacy/cnn/configs/nitro4060.yaml")
     parser.add_argument("--out", default="outputs/error_samples")
     parser.add_argument("--limit", type=int, default=40)
     parser.add_argument("--split", default=None)

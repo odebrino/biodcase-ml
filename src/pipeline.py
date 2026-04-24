@@ -13,9 +13,9 @@ from src.data.build_manifest import (
 )
 from src.data.cache_tools import cache_files, cache_size
 from src.analysis.inspect_errors import export_errors
-from src.training.evaluate import evaluate_checkpoint
-from src.training.predict import predict_audio, predict_image
-from src.training.train import train as _train
+from legacy.cnn.training.evaluate import evaluate_checkpoint
+from legacy.cnn.training.predict import predict_audio, predict_image
+from legacy.cnn.training.train import train as _train
 from src.utils.config import load_config
 
 
@@ -47,7 +47,7 @@ def build_manifest(
 
 
 def train(
-    config_path: str | Path = "configs/nitro4060.yaml",
+    config_path: str | Path = "legacy/cnn/configs/nitro4060.yaml",
     manifest: str | Path = "data_manifest.csv",
     processed_manifest: str | Path | None = None,
 ) -> Path:
@@ -60,7 +60,7 @@ def train(
 
 def evaluate(
     checkpoint: str | Path,
-    config_path: str | Path = "configs/nitro4060.yaml",
+    config_path: str | Path = "legacy/cnn/configs/nitro4060.yaml",
     manifest: str | Path = "data_manifest.csv",
     processed_manifest: str | Path | None = None,
     output_dir: str | Path = "outputs/evaluation",
@@ -82,7 +82,7 @@ def evaluate(
 
 def predict(
     checkpoint: str | Path,
-    config_path: str | Path = "configs/nitro4060.yaml",
+    config_path: str | Path = "legacy/cnn/configs/nitro4060.yaml",
     image: str | Path | None = None,
     audio: str | Path | None = None,
     start_seconds: float | None = None,
@@ -125,7 +125,7 @@ def cache_summary(root: str | Path = "processed_cache") -> dict:
 
 def inspect_errors(
     report: str | Path | None = None,
-    config_path: str | Path = "configs/nitro4060.yaml",
+    config_path: str | Path = "legacy/cnn/configs/nitro4060.yaml",
     out: str | Path = "outputs/error_samples",
     limit: int = 40,
     split: str | None = None,
@@ -142,7 +142,7 @@ def inspect_errors(
 
 
 def imbalance_audit(
-    config_path: str | Path = "configs/nitro4060.yaml",
+    config_path: str | Path = "legacy/cnn/configs/nitro4060.yaml",
     manifest: str | Path = "data_manifest.csv",
     run_dir: str | Path | None = None,
     out_json: str | Path = "outputs/reports/audit/imbalance_audit_summary.json",

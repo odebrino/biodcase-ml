@@ -11,6 +11,7 @@ classical:
     - rbf_svm
     - knn
     - gaussian_nb
+    - decision_tree_pruned
     - random_forest
     - gradient_boosted_trees
     - mlp
@@ -23,5 +24,10 @@ classical:
       patch: 64
       hybrid: 64
       handcrafted: null
+
+clustering:
+  representation: handcrafted
+  img_size: 32
+  per_class_limit: 500
 
 seed: 42

@@ -1,7 +1,7 @@
 import pandas as pd
 
-from src.training.evaluate import (
-    normalized_confusion_matrix,
+from src.evaluation.metrics import normalized_confusion_matrix
+from src.evaluation.reports import (
     write_baseline_metrics,
     write_bmb_bmz_error_report,
     write_bpd_error_report,
