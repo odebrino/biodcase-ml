@@ -74,8 +74,14 @@ The source development set has `train` and `validation`; this project holds `val
 
 The 76,123-row processed manifest is included; raw WAVs must be obtained separately. [Download, attribution, layout, and report-generation instructions](docs/DATA_ACCESS.md). [Detailed dataset specification](DATASET_SPEC.md).
 
+## Contributions and reuse
+
+Maintained by [Rafael Ode Brino](https://github.com/odebrino). The documented release work includes the CPU environment, synthetic example, CI, baseline correction, portable report generation, and result-provenance review. [Contribution evidence and scientific scope](docs/CONTRIBUTIONS.md).
+
+Original code is available under the [MIT license](LICENSE). Dataset-derived materials and third-party assets retain their original terms; see [NOTICE](NOTICE) and [data attribution](docs/DATA_ACCESS.md).
+
 ## Evidence and project context
 
 [Results and artifact inventory](docs/RESULTS.md) · [Experiment history](docs/EXPERIMENT_HISTORY.md) · [Annotation/label background](ANNOTATION_GUIDELINES_SUMMARY.md)
 
-Maintained by [Rafael Ode Brino](https://github.com/odebrino). The code covers data preparation, feature engineering, numerical evaluation, and error analysis for a BioDCASE-based study. Source recordings and annotations are credited to the external BioDCASE/ATBFL contributors through the linked dataset record. Individual commits provide the repository change history; maintenance does not imply authorship of external data or upstream methods.
+Source recordings and annotations are credited to the external BioDCASE/ATBFL contributors through the linked dataset record. Original study results and later reproducibility changes are distinguished in the linked evidence documents.

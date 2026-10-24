@@ -1,0 +1,13 @@
+Software and external data
+
+The MIT license in LICENSE covers the original software contributed to this
+repository. Copyright (c) 2026 biodcase-ml contributors.
+
+Source BioDCASE/ATBFL recordings and annotations, their derived data (including
+the processed event manifest), and externally obtained model weights are not
+relicensed by this software license. Consult the original dataset/model
+records for attribution and reuse conditions. See docs/DATA_ACCESS.md for the
+source dataset record and acquisition instructions.
+
+Third-party libraries retain their respective licenses. This repository does
+not grant rights to third-party materials beyond their original terms.
