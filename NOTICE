@@ -1,7 +1,7 @@
 Software and external data
 
 The MIT license in LICENSE covers the original software contributed to this
-repository. Copyright (c) 2026 biodcase-ml contributors.
+repository. Copyright (c) 2026 Rafael Ode Brino.
 
 Source BioDCASE/ATBFL recordings and annotations, their derived data (including
 the processed event manifest), and externally obtained model weights are not

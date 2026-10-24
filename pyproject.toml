@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "Reproducible bioacoustic classification pipeline for BIODCASE-style annotations."
 requires-python = ">=3.12,<3.15"
 license = "MIT"
+authors = [{name = "Rafael Ode Brino"}]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

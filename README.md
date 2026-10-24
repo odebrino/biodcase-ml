@@ -76,7 +76,7 @@ The 76,123-row processed manifest is included; raw WAVs must be obtained separat
 
 ## Contributions and reuse
 
-Maintained by [Rafael Ode Brino](https://github.com/odebrino). The documented release work includes the CPU environment, synthetic example, CI, baseline correction, portable report generation, and result-provenance review. [Contribution evidence and scientific scope](docs/CONTRIBUTIONS.md).
+**Author: [Rafael Ode Brino](https://github.com/odebrino).** I designed and implemented the original study pipeline: event preparation, audio features, training-fitted preprocessing, KNN model selection, evaluation across recording domains, and error analysis. I also maintain the CPU environment, synthetic example, CI, and portable reporting. [Contribution evidence and scientific scope](docs/CONTRIBUTIONS.md).
 
 Original code is available under the [MIT license](LICENSE). Dataset-derived materials and third-party assets retain their original terms; see [NOTICE](NOTICE) and [data attribution](docs/DATA_ACCESS.md).
 

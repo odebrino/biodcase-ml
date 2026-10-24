@@ -1,6 +1,8 @@
 # Contributions and scope
 
-Maintained by [Rafael Ode Brino](https://github.com/odebrino).
+**Author and maintainer: [Rafael Ode Brino](https://github.com/odebrino).**
+
+Rafael is the sole author of the original project implementation and study. His work covers event/data preparation, waveform and spectrogram features, training-fitted transforms, KNN model selection, stratified/domain-aware evaluation, and result/error analysis.
 
 ## Documented repository work
 
@@ -12,10 +14,10 @@ The [reproducibility revision](https://github.com/odebrino/biodcase-ml/commit/f0
 - Reconciliation of featured results with available artifacts, task/split labels, and domain-shift limitations.
 - Corrected source-data access and attribution instructions.
 
-These concrete changes can be reviewed in that commit and reproduced through the README commands. They describe repository and reproducibility work, rather than a statement of exclusive authorship of the original study.
+These subsequent reproducibility changes can be reviewed in that commit and reproduced through the README commands.
 
 ## Scientific implementation and external work
 
 The maintained code implements event preparation, audio features, training-fitted transformations, KNN selection/evaluation, and per-class/domain diagnostics. [Results](RESULTS.md) identifies the stored experiments and their limits; [experiment history](EXPERIMENT_HISTORY.md) distinguishes historical artifacts.
 
-The BioDCASE/ATBFL dataset and upstream numerical/ML methods have their own creators. [Data provenance](DATA_ACCESS.md) and [NOTICE](../NOTICE) distinguish those external materials from the repository's MIT-licensed original software. Git history records code changes; it does not by itself establish the original division of research responsibilities.
+The BioDCASE/ATBFL dataset and upstream numerical/ML methods have their own creators. [Data provenance](DATA_ACCESS.md) and [NOTICE](../NOTICE) distinguish those external materials from the repository's MIT-licensed original software. Sole authorship of the original project was confirmed by Rafael on 24 October 2026.
