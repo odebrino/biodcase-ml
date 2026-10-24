@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 import seaborn as sns
 
@@ -73,13 +74,19 @@ def write_dataset_class_metrics(predictions: pd.DataFrame, class_names: list[str
     return frame
 
 
-def write_baseline_metrics(predictions: pd.DataFrame, class_names: list[str], out_path: Path) -> pd.DataFrame:
+def write_baseline_metrics(predictions: pd.DataFrame, class_names: list[str], out_path: Path,
+                           training_labels: list[int]) -> pd.DataFrame:
     y_true = predictions["y_true_idx"].tolist()
-    supports = predictions["y_true_idx"].value_counts().to_dict()
+    if not training_labels:
+        raise ValueError("Baseline class frequencies require nonempty training labels.")
+    supports = pd.Series(training_labels).value_counts().to_dict()
     majority_idx = max(range(len(class_names)), key=lambda idx: supports.get(idx, 0))
+    probabilities = np.asarray([supports.get(idx, 0) for idx in range(len(class_names))], dtype=float)
+    probabilities /= probabilities.sum()
     baselines = {
         "majority_class": [majority_idx] * len(y_true),
-        "stratified_random_seed0": pd.Series(y_true).sample(frac=1.0, random_state=0).tolist(),
+        "stratified_random_seed0": np.random.default_rng(0).choice(
+            len(class_names), size=len(y_true), p=probabilities).tolist(),
     }
     rows = []
     for name, y_pred in baselines.items():
@@ -88,6 +95,7 @@ def write_baseline_metrics(predictions: pd.DataFrame, class_names: list[str], ou
         rows.append(
             {
                 "baseline": name,
+                "class_frequency_source": "training_split",
                 "accuracy": metrics["accuracy"],
                 "balanced_accuracy": metrics["balanced_accuracy"],
                 "macro_f1": metrics["macro_f1"],

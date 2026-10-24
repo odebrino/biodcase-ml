@@ -1,20 +1,27 @@
 # Dataset Spec
 
-This document describes the bundled dataset snapshot as it exists in this
-cleaned repository.
+This document records the processed snapshot associated with the committed
+manifest. The manifest and metadata summaries are included; raw WAVs and
+annotation source files must be downloaded separately. See
+[data access](docs/DATA_ACCESS.md) for the source and directory layout.
 
 ## Official split concept
 
 The project follows the challenge-style split that is already laid out on disk:
 
 - `train/`: official training domains
-- `validation/`: legacy directory name for the official held-out test domains
+- `validation/`: the source development-set validation domains, held out by this project
+
+The challenge has a separate official evaluation set. This repository's
+`official_test_*` filenames refer to its configured holdout, not that external
+evaluation set. Its maintained task classifies annotated events rather than
+performing the complete challenge detection/localization task.
 
 No new random train/test split is created by the cleaned repository.
 
 ## Site-year structure
 
-The bundled snapshot contains 11 site-year domains.
+The recorded source snapshot contains 11 site-year domains.
 
 Training domains:
 
@@ -27,7 +34,7 @@ Training domains:
 - `maudrise2014`
 - `rosssea2014`
 
-Held-out final-evaluation domains on disk under `validation/`:
+Development validation domains used as the project holdout under `validation/`:
 
 - `casey2017`
 - `kerguelen2014`
@@ -36,15 +43,16 @@ Held-out final-evaluation domains on disk under `validation/`:
 ## Authoritative numbers in the cleaned repository
 
 The following numbers are authoritative for this cleaned repository snapshot
-because they are derived directly from the bundled data and regenerated
-manifest:
+because they were derived from the earlier local data and regenerated manifest.
+The audio/annotation counts below are historical source inventory, not files
+included in this Git checkout:
 
 - `data_manifest.csv` rows: `76123`
 - manifest split counts: `train=58510`, `validation=17613`
-- train audio WAV files found in the bundled tree: `6004`
-- validation audio WAV files found in the bundled tree: `587`
-- train annotation CSVs bundled: `8`
-- validation annotation CSVs bundled: `3`
+- train audio WAV files recorded in the source inventory: `6004`
+- validation audio WAV files recorded in the source inventory: `587`
+- train annotation CSVs recorded: `8`
+- validation annotation CSVs recorded: `3`
 
 Per-domain manifest event counts:
 

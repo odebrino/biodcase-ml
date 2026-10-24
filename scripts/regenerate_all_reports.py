@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import shlex
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -33,7 +34,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--quality-report", default=None)
     parser.add_argument("--quality-summary", default=None)
     parser.add_argument("--run-dir", default=None)
-    parser.add_argument("--audit-config", default="configs/nitro4060.yaml")
+    parser.add_argument("--include-legacy-audit", action="store_true",
+                        help="Also regenerate the historical CNN imbalance audit; requires an existing run and config.")
+    parser.add_argument("--audit-config", default=None)
     parser.add_argument("--audit-report", default="IMBALANCE_AUDIT.md")
     parser.add_argument("--min-valid-seconds", type=float, default=0.5)
     parser.add_argument("--splits", nargs="+", default=["train", "validation"])
@@ -50,6 +53,14 @@ def sha256_file(path: Path) -> str:
 
 def main() -> None:
     args = parse_args()
+    include_audit = args.include_legacy_audit or args.run_dir is not None
+    run_dir = None
+    if include_audit:
+        run_dir = Path(args.run_dir) if args.run_dir else choose_run(Path("outputs/runs"))
+        if run_dir is None or not run_dir.is_dir():
+            raise SystemExit("Legacy audit requires an existing --run-dir.")
+        if not args.audit_config or not Path(args.audit_config).is_file():
+            raise SystemExit("Legacy audit requires an existing --audit-config.")
     data_root = Path(args.data_root)
     manifest_out = Path(args.manifest_out)
     reports_root = Path(args.reports_root)
@@ -92,14 +103,10 @@ def main() -> None:
 
     (manifest_reports / "manifest_schema.txt").write_text(MANIFEST_SCHEMA_DESCRIPTION + "\n", encoding="utf-8")
 
-    run_dir = Path(args.run_dir) if args.run_dir else choose_run(Path("outputs/runs"))
-    if run_dir is None:
-        raise SystemExit("No historical run found for imbalance audit regeneration.")
-
     audit_json = audit_reports / "imbalance_audit_summary.json"
     audit_md = audit_reports / "imbalance_audit_summary.md"
-    subprocess.run(
-        [
+    if include_audit:
+        subprocess.run([
             sys.executable,
             "-m",
             "src.analysis.imbalance_audit",
@@ -117,9 +124,7 @@ def main() -> None:
             str(audit_md),
             "--report",
             args.audit_report,
-        ],
-        check=True,
-    )
+        ], check=True)
 
     provenance = {
         "generated_at_utc": datetime.now(timezone.utc).isoformat(),
@@ -130,19 +135,9 @@ def main() -> None:
         "quality_issue_rows": int(len(issues)),
         "splits": list(args.splits),
         "reports_root": str(reports_root),
-        "historical_audit_run_dir": str(run_dir),
-        "commands": [
-            (
-                f"{sys.executable} scripts/regenerate_all_reports.py --data-root {data_root} "
-                f"--manifest-out {manifest_out} --reports-root {reports_root}"
-            ),
-            (
-                f"{sys.executable} -m src.analysis.imbalance_audit --config {args.audit_config} "
-                f"--manifest {manifest_out} --run-dir {run_dir} --distribution-out "
-                f"{manifest_reports / 'class_distribution_by_split_with_all.csv'} --out-json {audit_json} "
-                f"--out-md {audit_md} --report {args.audit_report}"
-            ),
-        ],
+        "historical_audit_run_dir": str(run_dir) if run_dir is not None else None,
+        "legacy_audit_included": include_audit,
+        "commands": [shlex.join(["python", "scripts/regenerate_all_reports.py", *sys.argv[1:]])],
         "artifacts": {
             "manifest": str(manifest_out),
             "quality_report": str(quality_report),
@@ -151,12 +146,15 @@ def main() -> None:
             "split_distribution": str(manifest_reports / "split_distribution.csv"),
             "dataset_distribution": str(manifest_reports / "dataset_distribution.csv"),
             "class_distribution_overall": str(manifest_reports / "class_distribution_overall.csv"),
-            "audit_class_distribution_with_all": str(manifest_reports / "class_distribution_by_split_with_all.csv"),
-            "imbalance_audit_json": str(audit_json),
-            "imbalance_audit_markdown": str(audit_md),
             "manifest_schema": str(manifest_reports / "manifest_schema.txt"),
         },
     }
+    if include_audit:
+        provenance["artifacts"].update({
+            "audit_class_distribution_with_all": str(manifest_reports / "class_distribution_by_split_with_all.csv"),
+            "imbalance_audit_json": str(audit_json),
+            "imbalance_audit_markdown": str(audit_md),
+        })
     (provenance_reports / "report_regeneration_provenance.json").write_text(
         json.dumps(provenance, indent=2) + "\n",
         encoding="utf-8",

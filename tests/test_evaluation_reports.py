@@ -124,7 +124,7 @@ def test_baseline_and_confidence_reports_include_all_classes(tmp_path):
     )
     baseline_path = tmp_path / "baseline_metrics.csv"
     confidence_path = tmp_path / "class_confidence_analysis.csv"
-    write_baseline_metrics(predictions, ["a", "b"], baseline_path)
+    write_baseline_metrics(predictions, ["a", "b"], baseline_path, training_labels=[0, 1])
     write_class_confidence_analysis(predictions, ["a", "b"], confidence_path)
 
     baselines = pd.read_csv(baseline_path)
@@ -132,3 +132,12 @@ def test_baseline_and_confidence_reports_include_all_classes(tmp_path):
     assert {"majority_class", "stratified_random_seed0"} == set(baselines["baseline"])
     assert set(confidence["label"]) == {"a", "b"}
     assert confidence["support"].sum() == len(predictions)
+
+
+def test_baseline_majority_comes_from_training_even_when_holdout_is_reversed(tmp_path):
+    predictions = pd.DataFrame({"y_true_idx": [1, 1, 1, 1, 0]})
+    report = write_baseline_metrics(predictions, ["a", "b"], tmp_path / "baselines.csv",
+                                    training_labels=[0] * 9 + [1])
+    majority = report.set_index("baseline").loc["majority_class"]
+    assert majority["accuracy"] == 0.2
+    assert set(report["class_frequency_source"]) == {"training_split"}

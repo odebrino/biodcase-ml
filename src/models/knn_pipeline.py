@@ -380,10 +380,10 @@ def _overview_lines(feature_set_name: str, metrics: dict, grouped_metrics: dict,
         f"- n_neighbors: `{knn_meta.get('n_neighbors')}`",
         f"- weights: `{knn_meta.get('weights')}`",
         f"- metric: `{knn_meta.get('metric')}`",
-        f"- official held-out test accuracy: `{metrics['accuracy']:.4f}`",
-        f"- official held-out test balanced accuracy: `{metrics['balanced_accuracy']:.4f}`",
-        f"- official held-out test macro-F1: `{metrics['macro_f1']:.4f}`",
-        f"- official held-out grouped-family macro-F1: `{grouped_metrics['macro_f1']:.4f}`",
+        f"- configured holdout accuracy: `{metrics['accuracy']:.4f}`",
+        f"- configured holdout balanced accuracy: `{metrics['balanced_accuracy']:.4f}`",
+        f"- configured holdout macro-F1: `{metrics['macro_f1']:.4f}`",
+        f"- configured holdout grouped-family macro-F1: `{grouped_metrics['macro_f1']:.4f}`",
         "",
         "Per-dataset held-out test summary:",
         "",
@@ -395,8 +395,10 @@ def _overview_lines(feature_set_name: str, metrics: dict, grouped_metrics: dict,
     lines.extend(
         [
             "",
-            "The legacy on-disk split name `validation` is the official held-out test split in this repository.",
-            "All transforms in this run were fit on the official training split only.",
+            "The default `validation` split belongs to the BioDCASE development set and is held out by this pipeline.",
+            "It is separate from the challenge evaluation set. Synthetic examples use their own generated holdout.",
+            "All transforms in this run were fit on the configured training split only.",
+            "The `official_test_*` filenames are retained for compatibility; they are not challenge leaderboard scores.",
         ]
     )
     return lines
@@ -524,7 +526,8 @@ def run_knn_submission(config: dict, manifest_path: Path, output_dir: Path) -> P
     write_dataset_metrics(prediction_frame, class_names, feature_dir / "official_test_metrics_by_dataset.csv")
     write_dataset_class_metrics(prediction_frame, class_names, output_dir / "official_test_per_class_metrics_by_dataset.csv")
     write_dataset_class_metrics(prediction_frame, class_names, feature_dir / "official_test_per_class_metrics_by_dataset.csv")
-    write_baseline_metrics(prediction_frame, class_names, output_dir / "baseline_metrics.csv")
+    write_baseline_metrics(prediction_frame, class_names, output_dir / "baseline_metrics.csv",
+                           training_labels=y_train.tolist())
     write_class_confidence_analysis(prediction_frame, class_names, output_dir / "class_confidence_analysis.csv")
     write_error_analysis(prediction_frame, output_dir / "top_confusions.csv")
     write_bpd_error_report(prediction_frame, output_dir / "bpd_error_report.csv")

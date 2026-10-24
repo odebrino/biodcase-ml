@@ -1,10 +1,13 @@
 from pathlib import Path
 import builtins
 
+import pytest
 import torch
 from scipy.io import wavfile
 
 from src.data.spectrogram import cached_event_tensor, event_cache_key
+
+pytestmark = pytest.mark.legacy
 
 
 def test_spectrogram_tensor_uses_three_channels_and_cache(tmp_path):

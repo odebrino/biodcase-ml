@@ -22,6 +22,7 @@ biodcase_development_set/
 
 # Generated caches / heavy artifacts
 outputs/cache/
+outputs/demo/
 *.joblib
 *.zip
 *.pt

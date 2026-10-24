@@ -1,0 +1,72 @@
+name: CPU checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cpu-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  maintained:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.12', '3.14']
+    env:
+      MPLBACKEND: Agg
+      OMP_NUM_THREADS: '1'
+      MKL_NUM_THREADS: '1'
+      OPENBLAS_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - name: Install CPU environment
+        run: python -m pip install -r requirements-cpu.txt -r requirements-dev.txt
+      - name: Check dependency consistency
+        run: python -m pip check
+      - name: Maintained tests
+        run: python -m pytest -q -m 'not legacy'
+      - name: Synthetic end-to-end example
+        run: python -m examples.synthetic_demo --output-dir outputs/demo
+      - name: Publish demo reports
+        uses: actions/upload-artifact@v7
+        with:
+          name: synthetic-demo-python-${{ matrix.python }}
+          path: |
+            outputs/demo/summary.json
+            outputs/demo/README.md
+            outputs/demo/reports/*.csv
+            outputs/demo/reports/*.json
+            outputs/demo/reports/*.png
+            outputs/demo/outputs/reports/quality/
+
+  legacy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      MPLBACKEND: Agg
+      OMP_NUM_THREADS: '1'
+      OPENBLAS_NUM_THREADS: '1'
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.14'
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - run: python -m pip install -r requirements-cpu.txt -r requirements-dev.txt
+      - name: Historical CNN and cache compatibility
+        run: python -m pytest -q -m legacy

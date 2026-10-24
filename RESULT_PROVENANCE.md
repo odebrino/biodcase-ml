@@ -1,5 +1,12 @@
 # Result Provenance
 
+Current-checkout inventory, updated 24 October 2026: stored search and
+notebook-reproduction summaries exist; raw audio, the final-evaluation KNN
+bundle, and `outputs/runs/20260421-223457/` are absent. See
+[Results and evidence](docs/RESULTS.md) for the authoritative inventory.
+Earlier claims below about that CNN run being bundled refer to a previous
+local snapshot and are superseded by this inventory.
+
 This repository uses the following provenance expectations for bundled result
 directories.
 
@@ -27,9 +34,8 @@ package should include:
   bundled and regenerated in this snapshot; provenance is recorded in
   `outputs/reports/provenance/report_regeneration_provenance.json`
 - `outputs/runs/20260421-223457/`:
-  bundled historical CNN run with partial provenance; it includes metrics,
-  config, predictions, and run metadata, but it does not include the full
-  command line or manifest hash expected for a fully packaged result bundle
+  historical CNN run referenced by older documentation; not bundled in this
+  checkout. Its metrics are not independently verifiable from a bundled run
 - `outputs/classical/`:
   not bundled in this snapshot; classical baselines are implemented in code but
   executed result directories are absent
